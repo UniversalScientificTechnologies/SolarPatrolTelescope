@@ -1,13 +1,16 @@
 {
+	"spi": "telescope",
 	"focus":{
+		"pin": 4,
 		"min": 10,
-		"max": 2000,
-		"home": 10,
+		"max": 5000,
+		"home": 2000,
 		"range": 35
 	},
 	"iris":{
+		"pin": 3,
 		"min": 10,
-		"max": 4000,
+		"max": 5000,
 		"home": 2000,
 		"range": 20
 

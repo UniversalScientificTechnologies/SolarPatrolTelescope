@@ -5,15 +5,9 @@
           "port": 1,
           "name": "smbus",
           "children": [
-		   {
-	                  "type": "i2cspi", 
-	                  "name": "telescope_1",
-	                  "address": 42,
-	                  "_adresa": "0x2a"
-	              },
 	              {
 	                  "type": "i2cspi", 
-	                  "name": "telescope_2",
+	                  "name": "telescope",
 	                  "address": 46,
 	                  "_adresa": "0x2e"
 	              },

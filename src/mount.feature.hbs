@@ -183,9 +183,10 @@ var mount_status = new ROSLIB.Topic({
 });
 
 mount_status.subscribe(function(msg) {
+    console.log("r, dec", msg.ra, msg.dec)
 
-    var svg_ra = -150+398*msg.ra/100
-    var svg_dec = -150+398*msg.dec/100
+    var svg_ra = -150+398*msg.ra/3331000
+    var svg_dec = -150+398*msg.dec/3331000
 
     $("#ra").val(msg.ra);
     $("#dec").val(msg.dec);
@@ -214,12 +215,12 @@ mount_status.subscribe(function(msg) {
     console.log(msg.dome_mode);
     switch(msg.dome_mode) {
     case 0:
-        console.log('nula');
+        //console.log('nula');
         $("#btn_dome_mode").removeClass('btn-success');
         $("#btn_dome_mode").addClass('btn-danger');
         break;
     case 1:
-        console.log('jedna');
+        //console.log('jedna');
         $("#btn_dome_mode").removeClass('btn-danger');
         $("#btn_dome_mode").addClass('btn-success');
         break;
@@ -256,11 +257,7 @@ mount_status.subscribe(function(msg) {
         $("#btn_time-2").addClass('btn-success');
         break;
     default:   
-    
     }
-
-
-
 });
 
 
