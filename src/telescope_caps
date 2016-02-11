@@ -1,0 +1,103 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+import time
+import rospy
+import std_msgs
+import axis
+import json
+import os
+import json
+
+
+from arom_helper import AromNode
+
+
+class TelescopePatrolaCtrl(AromNode):
+    node_name = "patrola_caps"
+    node_type = "patrola_caps"
+    node_pymlab = True
+
+    def __init__(self):
+        print(os.path.dirname(os.path.realpath(__file__)))
+        print(os.getcwd())
+        print(__file__)
+        print(__file__+'.feature.hbs')
+
+
+        AromNode.__init__(self)
+        node_name = rospy.get_name()
+        self.node_name = node_name
+        print(node_name)
+
+        print("config file:", '/home/odroid/config'+node_name+'.json')
+        with open('/home/odroid/config'+node_name+'.json') as json_data:
+            self.conf = json.load(json_data)
+
+        self.conf["1"]['position'] = False
+        self.conf["0"]['position'] = False
+
+        self.pub_clona0 = rospy.Publisher(node_name+"/krytka_0", std_msgs.msg.Int8, queue_size=1)
+        self.pub_clona1 = rospy.Publisher(node_name+"/krytka_1", std_msgs.msg.Int8, queue_size=1)
+
+        self.sub_clona_req = rospy.Subscriber("/ui/keyboard/out", std_msgs.msg.String, self.ui_action)
+        self.sub_clona_req = rospy.Subscriber("/patrola_caps/toggle", std_msgs.msg.Int8, self.ui_toggle)
+        
+        self.set_feature('external',  {'feature': __file__+'.feature.hbs', 'data': self.conf})
+
+        self.set_cap(0, 0)
+        self.set_cap(1, 0)
+
+        # for x in range(30, 100, 5):
+        #     print(x/10.0)
+        #     self.pymlab(device="pwm", method="set_pwm0", parameters=str(dict(frequency = 50, duty = 100-x/10.0)))
+        #     self.pymlab(device="pwm", method="set_ls0", parameters=str(dict(mode = 0b10 << 2*0)))
+        #     time.sleep(0.5)
+        #     self.pymlab(device="pwm", method="set_ls0", parameters=str(dict(mode = 0b0)))
+        #     time.sleep(0.5)
+
+
+        rate = rospy.Rate(2)
+        while not rospy.is_shutdown():
+            rate.sleep()
+            self.pub_clona0.publish(self.conf[str(0)]["position"])
+            self.pub_clona1.publish(self.conf[str(1)]["position"])
+
+
+    def set_cap(self, cap, position):
+        if position: value = self.conf[str(cap)]['open']
+        else: value = self.conf[str(cap)]['close']
+
+        self.pymlab(device="pwm", method="set_pwm0", parameters=str(dict(frequency = 50, duty = 100.0-value)))
+        self.pymlab(device="pwm", method="set_ls0", parameters=str(dict(mode = 0b10 << 2*int(cap))))
+        time.sleep(0.2)
+        self.pymlab(device="pwm", method="set_ls0", parameters=str(dict(mode = 0b0)))
+        self.conf[str(cap)]['position'] = position
+
+
+    def toggle_cap(self, cap):
+        position = not self.conf[str(cap)]["position"]
+        self.set_cap(cap, position)
+
+
+    def ui_action(self, msg):
+        data = msg.data
+        print(data)
+        nn = self.node_name[1:]
+        if data in ["telescope_cap_31", "telescope_cap_41"]:
+            print("zprava prijata", data)
+
+            if data == "telescope_cap_31":
+                self.toggle_cap(0)
+            if data == "telescope_cap_41":
+                self.toggle_cap(1)
+            #self.operation.append(data)
+
+    def ui_toggle(self, msg):
+        print("Toggle požadavek", msg)
+        self.toggle_cap(msg.data)
+    
+
+if __name__ == '__main__':
+    time.sleep(8)
+    m = TelescopePatrolaCtrl()

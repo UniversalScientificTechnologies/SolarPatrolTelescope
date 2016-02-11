@@ -40,7 +40,11 @@
 	                  "type": "TCA6416A",
 	                  "address": 33,
 	                  "_adresa": "0x21"
-	              }
+	              },
+                      {
+                          "name": "pwm",
+                          "type": "i2cpwm"
+                      }
 
           ]
       }

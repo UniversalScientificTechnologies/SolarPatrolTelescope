@@ -1,0 +1,168 @@
+<style type="text/css">
+    
+
+</style>
+
+
+<div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 col-xl-6">
+<div class="card">
+    <div class="card-header primary-color white-text">Klapky dalekohledů</div>
+    <div class="card-block"> 
+
+    <div class="row">
+
+        {% for x in FeatureParams['data'] %}            
+            {% if x in ['0', '1', '2', "3", "4"] %}
+                {% set klapka = FeatureParams['data'][x]%}
+
+                <input type="button" class="form-control btn-default mb-1" id="tlacitko_{{x}}" klapka_id="{{int(x)}}" name="{{klapka['name']}}" value="{{klapka['name']}}">
+
+            {% end %} 
+        {% end %}
+
+    </div>
+</div>
+</div>
+
+
+<script type="text/javascript">
+
+function round(num,n){
+  return parseFloat(Math.round(num * Math.pow(10, n)) /Math.pow(10,n)).toFixed(n);
+}
+
+
+
+{% for x in FeatureParams['data'] %}
+    {% if x in ['0', '1', '2', "3", "4"] %}
+        var cap_status_{{x}} = new ROSLIB.Topic({
+            ros : ros,
+            name : '/patrola_caps/krytka_{{x}}',
+            messageType : 'std_msgs/Int8',
+        });
+
+        cap_status_{{x}}.subscribe(function(msg) {
+            // console.log(msg);
+            $("#tlacitko_{{x}}").removeClass("btn-success btn-default btn-warning");
+            if(msg.data){
+                $("#tlacitko_{{x}}").addClass("btn-warning");
+                $("#tlacitko_{{x}}").val($("#tlacitko_{{x}}").attr('name')+" - Otevřeno")
+            } else {
+                $("#tlacitko_{{x}}").addClass("btn-success");
+                $("#tlacitko_{{x}}").val($("#tlacitko_{{x}}").attr('name')+" - Zavřeno")
+            }
+        });
+
+        var send_tgl_{{x}} = new ROSLIB.Topic({
+            ros : ros,
+            name : '/patrola_caps/toggle',
+            messageType : 'std_msgs/Int8'
+        });
+
+        $('#tlacitko_{{x}}').on("click", function(){
+            console.log("Odesilam data {{x}}");
+            var msg = new ROSLIB.Message({
+                data: {{x}}
+            });
+            send_tgl_{{x}}.publish(msg);
+        });
+    {% end %}
+{% end %}
+
+
+// {# var focus_range = {{FeatureParams['focus_range']}}/100;
+// var iris_range = {{FeatureParams['iris_range']}}/100;
+
+// var telescope_focus_set = new ROSLIB.Topic({
+//     ros : ros,
+//     name : '{{FeatureParams['node_name']}}/ostreni/set',
+//     messageType : 'std_msgs/String'
+// });
+
+// var telescope_iris_set = new ROSLIB.Topic({
+//     ros : ros,
+//     name : '{{FeatureParams['node_name']}}/iris/set',
+//     messageType : 'std_msgs/String'
+// });
+
+
+
+// var telescope_focus_set = new ROSLIB.Topic({
+//     ros : ros,
+//     name : '{{FeatureParams['node_name']}}/ostreni/command',
+//     messageType : 'std_msgs/String'
+// });
+
+// var telescope_iris_set = new ROSLIB.Topic({
+//     ros : ros,
+//     name : '{{FeatureParams['node_name']}}/iris/command',
+//     messageType : 'std_msgs/String'
+// });
+
+// var telescope_focus_position = new ROSLIB.Topic({
+//     ros : ros,
+//     name : '{{FeatureParams['node_name']}}/ostreni/position',
+//     messageType : 'std_msgs/String'
+// });
+
+// telescope_focus_position.subscribe(function(msg) {
+//     console.log(msg);
+//     $("#img-ostreni").attr('transform', "translate(-165.72391,"+String(-2*msg.data)+")");
+//     $("#slider-ostreni").val(msg.data);
+//     $("#pos-ostreni").html(round(msg.data,2)+"% "+ round(msg.data*focus_range,2) +"cm");
+// });
+
+// var telescope_iris_position = new ROSLIB.Topic({
+//     ros : ros,
+//     name : '{{FeatureParams['node_name']}}/iris/position',
+//     messageType : 'std_msgs/String'
+// });
+
+// telescope_iris_position.subscribe(function(msg) {
+//     console.log(msg);
+//     $("#img-clona").attr('r',msg.data);
+//     $("#slider-clona").val(msg.data);
+//     $("#pos-clona").html(round(msg.data,2)+"% "+ round(msg.data*iris_range,2) +"cm");
+// });
+
+
+// var telescope_status = new ROSLIB.Topic({
+//     ros : ros,
+//     name : '{{FeatureParams['node_name']}}/status',
+//     messageType : 'std_msgs/String'
+// });
+
+// telescope_status.subscribe(function(msg) {
+//     console.log(msg);
+// });
+
+//  $('#btn_ostreni').on("click", function(){
+//     console.log("Odesilam data", $('#val_ostreni').val()/focus_range)
+//     var msg = new ROSLIB.Message({
+//         data:  String($('#val_ostreni').val()/focus_range)
+//     });
+//     telescope_focus_set.publish(msg);
+//  });
+
+//  $('#btn_clona').on("click", function(){
+//     console.log("Odesilam data", $('#val_clona').val()/iris_range)
+//     var msg = new ROSLIB.Message({
+//         data:  String($('#val_clona').val()/iris_range)
+//     });
+//     telescope_iris_set.publish(msg);
+//  });
+
+//  $('#slider-ostreni').on("change", function(){
+//     console.log($("#slider-ostreni").val());
+//     $('#val_ostreni').val($('#slider-ostreni').val()*focus_range);
+//  });
+
+//  $('#slider-clona').on("change", function(){
+//     console.log( $("#slide-_clona").val() );
+//     $('#val_clona').val($('#slider-clona').val()*iris_range);
+//  })   #};
+
+    
+
+
+</script>

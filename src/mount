@@ -28,6 +28,7 @@ class SolarLab(AromNode):
         self.time_mode = 1 # ktery cas - slunecni, hvezdy
         self.tracking = False
         self.operation = []
+        self.run = True
 
         self.ra_range = [100, 30000]
         self.dec_range = [100, 30000]
@@ -39,19 +40,19 @@ class SolarLab(AromNode):
 
         AromNode.__init__(self)
         node_name = rospy.get_name()
-        print node_name
+        print(node_name)
 
-        print "config file:", '/home/odroid/config'+node_name+'.json'
+        print("config file:", '/home/odroid/config'+node_name+'.json')
         self.config_file = '/home/odroid/config'+node_name+'.json'
         with open(self.config_file) as json_data:
             self.conf = json.load(json_data)
 
-        print self.conf
+        print(self.conf)
         self.ra_range = self.conf['ra']['range']
         self.dec_range = self.conf['dec']['range']
 
 
-        print "nastavit konfiguraci pro gpio"
+        print("nastavit konfiguraci pro gpio")
         self.dome_auto = False
         self.dome_move_last = time.time()
         self.dome_move_period = self.conf['dome']['sleep']
@@ -72,6 +73,7 @@ class SolarLab(AromNode):
         self.sub_motor_time_night = rospy.Subscriber("/motor_time_night", std_msgs.msg.String, self.ui_set_std_night)
         self.sub_dome_request = rospy.Subscriber(node_name+'/dome/setting', solar_patrol_telescope.msg.PatrolaDomeSettings, self.dome_update)
 
+        self.sub_sysmsg = rospy.Subscriber('/syscmd', std_msgs.msg.String, self.sys_msg)
 
         self.set_feature('external',  {'feature': __file__+'.feature.hbs', 'id': 'mount_position', 'node_name': node_name, 'toppic': node_name+'/status'})
         self.set_feature('hbstep_status__0',  {'id': 'motor_ra', 'name': 'Motor ra', 'node_name': node_name, 'toppic': node_name+'/motor_ra'})
@@ -91,7 +93,7 @@ class SolarLab(AromNode):
 
         i = 10
         rate = rospy.Rate(10)
-        while not rospy.is_shutdown():
+        while not rospy.is_shutdown() and self.run:
             rate.sleep()
             try:
 
@@ -199,7 +201,10 @@ class SolarLab(AromNode):
                         if self.tracking:
                             print "tracking ON"
                             if self.time_mode == 1:
-                                self.motor_time.Run(1, self.conf['time']['speed_solar'])
+                                # sval = abs(int((self.conf['time']['speed_solar'] * 2.5e-7)/(2**-28)))
+                                sval = abs(int(self.conf['time']['speed_solar'] * 67.106))
+                                print("tracking on", sval, bin(sval))
+                                self.motor_time.Run(1, self.conf['time']['speed_solar'], speed_value = sval)
                             elif self.time_mode == 2:
                                 print(self.conf)
                                 self.motor_time.Run(1, self.conf['time']['speed_night'])
@@ -229,10 +234,17 @@ class SolarLab(AromNode):
             except Exception, e:
                 print "err1>", repr(e)
 
-        self.motor_ra.Float()
-        self.motor_dec.Float()
-        self.motor_time.Float()
+        self.dome_auto = False
+        try:
+            self.motor_ra.Float()
+            self.motor_dec.Float()
+            self.motor_time.Float()
 
+        except:
+            print("Nepovedlo se zastavit vsechny motory pred vypnutim")
+
+        print("Ted se zacnu vypinat")
+        os.system('poweroff') 
 
     def reinitMotors(self):
         self.motor_ra = axis.axis(SPI = self.pymlab, SPI_CS = 0b0001, Direction = True, StepsPerUnit = 1, protocol = 'arom', arom_spi_name = 'mount_ra')
@@ -381,13 +393,35 @@ class SolarLab(AromNode):
         else:
             print "tohle neni muj prikaz"
 
+    def sys_msg(self, data):
+        print("AROMMSG:", data)
+
+        if data.data == 'poweroff':
+            print("prikaz pro vypnuti")
+            print(data)
+            #if data.header.stamp + 10 > rospy.time.now():
+	    #pass
+            self.run = False
+            #else:
+            #   print("Zprava starsi nez 10s, ignoruji")
+            #self.dome_auto = False
+            #time.sleep(2) # pockat na vsechny smycky
+            #try:
+            #    self.motor_ra.Float()
+            #    self.motor_dec.Float()
+            #    self.motor_time.Float()
+            #except:
+            #    print("Nepovedlo se zastavit vsechny motory pred vypnutim")
+            #print("Ted se zacnu vypinat")
+
+
     def ui_set_std_day(self, data):
         print(data.data)
-        self.conf['time']['speed_solar'] = -1*float(data.data)
+        self.conf['time']['speed_solar'] = -1.0*float(data.data)
 
     def ui_set_std_night(self, data):
         print(data.data)
-        self.conf['time']['speed_night'] = -1*float(data.data)
+        self.conf['time']['speed_night'] = -1.0*float(data.data)
 
     def dome_update(self, data):
         print data
