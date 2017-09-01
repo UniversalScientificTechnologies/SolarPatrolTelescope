@@ -1,0 +1,42 @@
+{
+  "name": "pymlab", 
+  "children": [
+      {
+          "port": 1,
+          "name": "smbus",
+          "children": [
+		   {
+	                  "type": "i2cspi", 
+	                  "name": "telescope_1",
+	                  "address": 42
+	              },
+	              {
+	                  "type": "i2cspi", 
+	                  "name": "telescope_2",
+	                  "address": 46
+	              },
+	              {
+	                  "type": "i2cspi", 
+	                  "name": "mount_ra",
+	                  "address": 40
+	              },
+	              {
+	                  "type": "i2cspi", 
+	                  "name": "mount_dec",
+	                  "address": 44
+	              },
+	              {
+	                  "type": "i2cspi", 
+	                  "name": "mount_time",
+	                  "address": 41
+	              },
+	              {
+	              	  "name": "gpio_dome",
+	                  "type": "TCA6416A",
+	                  "address": 33
+	              }
+
+          ]
+      }
+  ]
+}

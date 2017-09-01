@@ -1,0 +1,146 @@
+<style type="text/css">
+	
+
+</style>
+
+
+<div class="col-xs-12 col-sm-12 col-md-6 col-lg-6 col-xl-6">
+<div class="card">
+    <div class="card-header primary-color white-text">Telescope control</div>
+    <div class="card-block"> 
+<svg width="100%" viewBox="0 0 516.87187 318.55918" id="svg2" version="1.1" inkscape:version="0.91 r13725" sodipodi:docname="telescope-ctrl_patrola.svg"> <defs id="defs4" /> <sodipodi:namedview id="base" pagecolor="#ffffff" bordercolor="#666666" borderopacity="1.0" inkscape:pageopacity="0.0" inkscape:pageshadow="2" inkscape:zoom="1.1419643" inkscape:cx="-19.658766" inkscape:cy="246.09375" inkscape:document-units="px" inkscape:current-layer="svg2" showgrid="false" fit-margin-top="0" fit-margin-left="0" fit-margin-right="0" fit-margin-bottom="0" inkscape:window-width="2495" inkscape:window-height="1416" inkscape:window-x="1665" inkscape:window-y="24" inkscape:window-maximized="1" /> <metadata id="metadata7"> <rdf:RDF> <cc:Work rdf:about=""> <dc:format>image/svg+xml</dc:format> <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage" /> <dc:title></dc:title> </cc:Work> </rdf:RDF> </metadata> <rect style="fill:#171515;fill-opacity:0.24307694;stroke:none;stroke-opacity:1" id="rect4165" width="172.50978" height="205.78577" x="322.03214" y="69.427261" /> <circle style="fill:#858280;fill-opacity:1;stroke:none" id="path4141" cx="138.5768" cy="179.98238" r="120" /> <g inkscape:label="Vrstva 1" inkscape:groupmode="layer" id="layer1" transform="translate(-120.62618,-135.4912)"> <path style="fill:#171515;fill-opacity:1;stroke:none" d="M 259.2023,176.89678 A 138.57695,138.57695 0 0 0 120.62618,315.47424 138.57695,138.57695 0 0 0 259.2023,454.05037 138.57695,138.57695 0 0 0 397.77976,315.47424 138.57695,138.57695 0 0 0 259.2023,176.89678 Z m 0,33.15798 A 105.41958,105.41958 0 0 1 364.62178,315.47424 105.41958,105.41958 0 0 1 259.2023,420.8937 105.41958,105.41958 0 0 1 153.78285,315.47424 105.41958,105.41958 0 0 1 259.2023,210.05476 Z" id="path4136" inkscape:connector-curvature="0" /> </g> <circle style="fill:#6067da;fill-opacity:1;stroke:#b0afb0;stroke-opacity:1" id="img-clona" cx="138.5768" cy="179.98238" r="100" /> <g id="g4157" transform="matrix(1,0,0,0.98139522,-188.4917,-129.6225)"> <rect y="174.48886" x="504.39404" height="281.97028" width="20.140736" id="rect4145" style="fill:#171515;fill-opacity:1;stroke:none;stroke-opacity:1" /> <rect y="174.26993" x="676.02814" height="282.40814" width="18.827209" id="rect4147" style="fill:#171515;fill-opacity:1;stroke:none;stroke-opacity:1" /> </g> <g id="img-ostreni" transform="translate(-165.72391,-200)"> <ellipse ry="16.247971" rx="87.835136" cy="271.88916" cx="576.85693" id="path4151" style="fill:#6067da;fill-opacity:1;stroke:#b0afb0;stroke-width:0.90437347;stroke-opacity:1" /> <rect y="266.85397" x="471.11804" height="10.070368" width="211.47772" id="rect4149" style="fill:#171515;fill-opacity:1;stroke:none;stroke-opacity:1" /> </g></svg>
+
+    <div class="row">
+    	<div class="col-xs-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+    		Clona <span id="pos-clona"></span><small> (0-21cm)</small>
+    		<input type="range" class="form-control" min="0" max="100" value="0" id="slider-clona">
+			<div class="input-group">
+  				<input type="number" class="form-control" min="0" max="21" value="0" id="val_clona">
+                <span class="input-group-addon">cm</span>
+				<span class="input-group-btn">
+			      	<button class="btn btn-secondary" type="button" id="btn_clona">Set</button>
+			 	</span>
+			</div>
+
+    	</div>
+    	<div class="col-xs-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+    		Ostreni <span id="pos-ostreni"></span><small> (0-30cm)</small>
+    		<input type="range" class="form-control" min="0" max="100" value="0" id="slider-ostreni">
+			<div class="input-group">
+  				<input type="number" class="form-control" min="0" max="30" value="0" id="val_ostreni">
+                <span class="input-group-addon">cm</span>
+				<span class="input-group-btn">
+			      	<button class="btn btn-secondary" type="button" id="btn_ostreni">Set</button>
+			 	</span>
+			</div>
+    	</div>
+
+
+    </div>
+
+		{#{% for i, type in enumerate(FeatureParams['types']) %}
+			<button type="button" class="form-control btn btn-sm btn-secondary" onclick="makeSound('{{type}}')">{{type}}</button><br><br>
+		{% end %}#}
+
+</div>
+</div>
+
+
+<script type="text/javascript">
+
+var telescope_focus_set = new ROSLIB.Topic({
+    ros : ros,
+    name : '{{FeatureParams['node_name']}}/ostreni/set',
+    messageType : 'std_msgs/String'
+});
+
+var telescope_iris_set = new ROSLIB.Topic({
+    ros : ros,
+    name : '{{FeatureParams['node_name']}}/iris/set',
+    messageType : 'std_msgs/String'
+});
+
+
+
+var telescope_focus_set = new ROSLIB.Topic({
+    ros : ros,
+    name : '{{FeatureParams['node_name']}}/ostreni/command',
+    messageType : 'std_msgs/String'
+});
+
+var telescope_iris_set = new ROSLIB.Topic({
+    ros : ros,
+    name : '{{FeatureParams['node_name']}}/iris/command',
+    messageType : 'std_msgs/String'
+});
+
+var telescope_focus_position = new ROSLIB.Topic({
+    ros : ros,
+    name : '{{FeatureParams['node_name']}}/ostreni/position',
+    messageType : 'std_msgs/String'
+});
+
+telescope_focus_position.subscribe(function(msg) {
+    console.log(msg);
+    $("#img-ostreni").attr('transform', "translate(-165.72391,"+String(-2*msg.data)+")");
+    $("#slider-ostreni").val(msg.data);
+    $("#pos-ostreni").html(msg.data+" % "+ msg.data*0.30 +" cm");
+});
+
+var telescope_iris_position = new ROSLIB.Topic({
+    ros : ros,
+    name : '{{FeatureParams['node_name']}}/iris/position',
+    messageType : 'std_msgs/String'
+});
+
+telescope_iris_position.subscribe(function(msg) {
+    console.log(msg);
+    $("#img-clona").attr('r',msg.data);
+    $("#slider-clona").val(msg.data);
+    $("#pos-clona").html(msg.data+" % "+ msg.data*0.21 +" cm");
+});
+
+
+var telescope_status = new ROSLIB.Topic({
+    ros : ros,
+    name : '{{FeatureParams['node_name']}}/status',
+    messageType : 'std_msgs/String'
+});
+
+telescope_status.subscribe(function(msg) {
+    console.log(msg);
+});
+
+ $('#btn_ostreni').on("click", function(){
+    console.log("Odesilam data", $('#val_ostreni').val()/0.30)
+    var msg = new ROSLIB.Message({
+        data:  String($('#val_ostreni').val()/0.30)
+    });
+    telescope_focus_set.publish(msg);
+ });
+
+ $('#btn_clona').on("click", function(){
+    console.log("Odesilam data", $('#val_clona').val()/0.21)
+    var msg = new ROSLIB.Message({
+        data:  String($('#val_clona').val()/0.21)
+    });
+    telescope_iris_set.publish(msg);
+ });
+
+ $('#slider-ostreni').on("change", function(){
+    console.log($("#slider-ostreni").val());
+    $('#val_ostreni').val($('#slider-ostreni').val()*0.30);
+ });
+
+ $('#slider-clona').on("change", function(){
+    console.log( $("#slide-_clona").val() );
+    $('#val_clona').val($('#slider-clona').val()*0.21);
+ });
+
+
+
+
+    
+
+
+</script>

@@ -1,0 +1,12 @@
+<launch>
+  <node name="pymlab_bridge" pkg="arom" type="pymlab_bridge" args="/home/odroid/arom_ws/src/SolarPatrolTelescope/config/demo.json"/>
+  <include
+    file="$(find rosbridge_server)/launch/rosbridge_websocket.launch"
+  />
+  <node name="web" pkg="arom" type="runWeb.sh"/>
+  <node name="keyboard" pkg="solar_patrol_telescope" type="io_keyboard"/>
+  <node name="telescope_1" pkg="solar_patrol_telescope" type="telescope_ctrl"/>
+  <node name="telescope_2" pkg="solar_patrol_telescope" type="telescope_ctrl"/>
+  <!--<node name="telescope_3" pkg="solar_patrol_telescope" type="telescope_ctrl"/>-->
+  <node name="mount" pkg="solar_patrol_telescope" type="mount"/>
+</launch>

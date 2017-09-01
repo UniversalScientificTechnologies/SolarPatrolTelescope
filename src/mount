@@ -1,0 +1,258 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+import time
+import rospy
+import std_msgs
+import axis
+import json
+import os
+
+from arom_helper import AromNode
+
+
+class SolarLab(AromNode):
+    node_name = "mount"
+    node_type = "mount"
+    node_pymlab = True
+
+    def __init__(self):
+        print os.path.dirname(os.path.realpath(__file__))
+        print os.getcwd()
+        print __file__
+        print __file__+'.feature.hbs'
+
+        self.speed_mode = 1
+        self.tracking = False
+        self.operation = []
+
+
+        AromNode.__init__(self)
+        node_name = rospy.get_name()
+        print node_name
+
+        self.pub_motor_ra = rospy.Publisher(node_name+"/motor_ra", std_msgs.msg.String, queue_size=1)
+        self.pub_motor_dec = rospy.Publisher(node_name+"/motor_dec", std_msgs.msg.String, queue_size=1)
+        self.pub_motor_time = rospy.Publisher(node_name+"/motor_time", std_msgs.msg.String, queue_size=1)
+        #self.pub_ostreni_pos = rospy.Publisher(node_name+"/ostreni/position", std_msgs.msg.String, queue_size=1, latch = True)
+        #self.pub_iris_pos = rospy.Publisher(node_name+"/iris/position", std_msgs.msg.String, queue_size=1, latch = True)
+
+        self.sub_iris_request = rospy.Subscriber("/ui/keyboard/out", std_msgs.msg.String, self.ui_action)
+
+
+        #self.set_feature('external',  {'feature': __file__+'.feature.hbs', 'id': 'motor_focus', 'name': 'Motor Ostreni', 'node_name': node_name, 'toppic': node_name+'/motor_focus'})
+        self.set_feature('hbstep_status__0',  {'id': 'motor_ra', 'name': 'Motor ra', 'node_name': node_name, 'toppic': node_name+'/motor_ra'})
+        self.set_feature('hbstep_status__1',  {'id': 'motor_dec', 'name': 'Motor dec', 'node_name': node_name, 'toppic': node_name+'/motor_dec'})
+        self.set_feature('hbstep_status__2',  {'id': 'motor_time', 'name': 'Motor time', 'node_name': node_name, 'toppic': node_name+'/motor_time'})
+        
+        #rospy.Timer(rospy.Duration(1), self.get_status, oneshot=False)
+
+
+        self.pymlab(device="gpio_dome", method="config_ports", parameters=str(dict(port0 = 0x00, port1 = 0x00)))
+        self.pymlab(device="gpio_dome", method="set_ports", parameters=str(dict(port0 = 0x00, port1 = 0x00)))
+
+        print "AXIS::::", node_name[1:]
+        self.motor_ra = axis.axis(SPI = self.pymlab, SPI_CS = 0b0001, Direction = True, StepsPerUnit = 1, protocol = 'arom', arom_spi_name = 'mount_ra')
+        self.motor_ra.Setup(
+                       MAX_SPEED = 700,
+                       KVAL_ACC=0.4,
+                       KVAL_RUN=0.35,
+                       KVAL_DEC=0.4,
+                       ACC = 50,
+                       DEC = 200,
+                       FS_SPD=3000,
+                       STEP_MODE=None)
+        self.motor_ra.Float()
+        self.motor_ra.MaxSpeed(500)
+        self.motor_ra.SetSwRange(100, 10000)
+
+        self.motor_dec = axis.axis(SPI = self.pymlab, SPI_CS = 0b0001, Direction = True, StepsPerUnit = 1, protocol = 'arom', arom_spi_name = 'mount_dec')  
+        self.motor_dec.Setup(
+                       MAX_SPEED = 700,
+                       KVAL_ACC=0.4,
+                       KVAL_RUN=0.35,
+                       KVAL_DEC=0.4,
+                       ACC = 50,
+                       DEC = 200,
+                       FS_SPD=3000,
+                       STEP_MODE=None)
+        self.motor_dec.Float()
+        self.motor_dec.MaxSpeed(500)
+        self.motor_dec.SetSwRange(100, 10000)
+
+        self.motor_time = axis.axis(SPI = self.pymlab, SPI_CS = 0b0001, Direction = True, StepsPerUnit = 1, protocol = 'arom', arom_spi_name = 'mount_time')  
+        self.motor_time.Setup(
+                       MAX_SPEED = 700,
+                       KVAL_ACC=0.4,
+                       KVAL_RUN=0.35,
+                       KVAL_DEC=0.4,
+                       ACC = 50,
+                       DEC = 50,
+                       FS_SPD=3000,
+                       STEP_MODE=None)
+        self.motor_time.Float()
+        self.motor_time.MaxSpeed(500)
+
+        self.motor_ra.GoTo(-10000)
+        self.motor_dec.GoTo(-10000)
+
+        while self.motor_ra.IsBusy() or self.motor_dec.IsBusy():
+            time.sleep(0.4)
+        print "prejezd do vychozi polohy"
+        self.motor_ra.GoTo((500+10000)/2)
+        self.motor_dec.GoTo((500+10000)/2)
+        while self.motor_ra.IsBusy() or self.motor_dec.IsBusy():
+            time.sleep(0.4)
+        print "jsem uprostred"
+        self.motor_ra.Float()
+        self.motor_dec.Float()
+
+
+
+        i = 0
+        rate = rospy.Rate(5)
+        while not rospy.is_shutdown():
+            rate.sleep()
+            try:
+
+                i += 1
+                if i > 10:
+                    i = 0
+                    self.motor_ra_status = self.motor_ra.getStatus()
+                    self.motor_dec_status = self.motor_dec.getStatus()
+                    self.motor_time_status = self.motor_time.getStatus()
+                    
+                    self.pub_motor_ra.publish(json.dumps(self.motor_ra_status, ensure_ascii=False))
+                    self.pub_motor_dec.publish(json.dumps(self.motor_dec_status, ensure_ascii=False))
+                    self.pub_motor_time.publish(json.dumps(self.motor_time_status, ensure_ascii=False))
+
+                if len(self.operation)>0:
+                    req = self.operation.pop(0)
+                    print req
+
+                    if 'RA_M1' == req:
+                        print "RA - dolu ON"
+                        #self.motor_ra.Run(0, 100*self.speed_mode)
+                        self.motor_ra.GoTo(10000)
+
+                    elif 'RA_P1' == req:
+                        print "RA - nahoru ON"
+                        #self.motor_ra.Run(1, 100*self.speed_mode)
+                        self.motor_ra.GoTo(100)
+
+                    elif 'RA_center1' == req:
+                        print "RA - center"
+                        self.motor_ra.GoTo(500)
+
+                    elif 'RA_M0' == req or 'RA_P0' == req:
+                        print "RA - OFF"
+                        self.motor_ra.Float()
+
+                    elif 'DEC_M1' == req:
+                        print "DEC - dolu ON"
+                        self.motor_dec.GoTo(10000)
+                        #self.motor_dec.Run(0, 100*self.speed_mode)
+
+                    elif 'DEC_P1' == req:
+                        print "DEC - nahoru ON"
+                        #self.motor_dec.Run(1, 100*self.speed_mode)
+                        self.motor_dec.GoTo(100)
+
+                    elif 'DEC_center1' == req:
+                        print "DEC - center"
+                        self.motor_dec.GoTo(500)
+
+                    elif 'DEC_M0' == req or 'DEC_P0' == req:
+                        print "DEC - OFF"
+                        self.motor_dec.Float()
+
+
+                    elif 'speed_11' == req:
+                        self.motor_ra.MaxSpeed(100)
+                        self.motor_dec.MaxSpeed(100)
+
+                    elif 'speed_21' == req:
+                        self.motor_ra.MaxSpeed(200)
+                        self.motor_dec.MaxSpeed(200)
+
+                    elif 'speed_31' == req:
+                        self.motor_ra.MaxSpeed(500)
+                        self.motor_dec.MaxSpeed(500)
+
+
+
+                    elif 'dome_a1' == req and self.motor_dec_status['POSITION'] < 10000:
+                        print 'dome ctrl'
+                        self.pymlab(device="gpio_dome", method="set_ports", parameters=str(dict(port0 = 1, port1 = 0)))
+
+                    elif 'dome_b1' == req:
+                        print 'dome ctrl'
+                        self.pymlab(device="gpio_dome", method="set_ports", parameters=str(dict(port0 = 2, port1 = 0)))
+
+                    elif 'dome_a0' == req or 'dome_b0' == req:
+                        print 'dome ctrl'
+                        self.pymlab(device="gpio_dome", method="set_ports", parameters=str(dict(port0 = 0, port1 = 0)))
+
+
+
+                    elif 'tracking_toggle0' == req:
+                        self.tracking = not self.tracking
+                        if self.tracking:
+                            print "tracking ON"
+                            self.motor_time.Run(1, 50)
+                        else:
+                            print "tracking OFF"
+                            self.motor_time.Float()
+
+
+                        
+            except Exception, e:
+                print "err1>", repr(e)
+
+        self.motor_ra.Float()
+        self.motor_dec.Float()
+        self.motor_time.Float()
+
+    def ostreni_set(self, data):
+        print "ostreni", data
+        rospy.loginfo(data.data)
+        poloha = int(float(data.data))
+
+        if poloha > 100: poloha = 100
+        elif poloha < 0: poloha = 0
+
+        self.ostreni_request = int(poloha)
+        self.ostreni_zmena = True
+
+    def iris_set(self, data):
+        print "iris", data
+        rospy.loginfo(data.data)
+        poloha = int(float(data.data))
+
+        if poloha > 100: poloha = 100
+        elif poloha < 0: poloha = 0
+
+        self.iris_request = int(poloha)
+        self.iris_zmena = True
+
+    def motor_calibrate():
+        pass
+
+    def ui_action(self, data):
+        print data.data
+        req = str(data.data)
+
+        if req in ['RA_M0', 'RA_M1', 'DEC_M0', 'DEC_M1', 'RA_P0', 'RA_P1', 'DEC_P0', 'DEC_P1', 'tracking_toggle0', 'dome_a0', 'dome_a1', 'dome_b0', 'dome_b1', 'speed_11', 'speed_21', 'speed_31', 'RA_center1', 'DEC_center1']:
+            self.operation.append(req)
+            '''
+
+            '''
+
+        else:
+            print "tohle neni muj prikaz"
+
+
+
+if __name__ == '__main__':
+    time.sleep(6)
+    m = SolarLab()

@@ -1,0 +1,190 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+import time
+import rospy
+import std_msgs
+import axis
+import json
+import os
+
+from arom_helper import AromNode
+
+
+class TelescopePatrolaCtrl(AromNode):
+    node_name = "patrola_ctrl"
+    node_type = "patrola_ctrl"
+    node_pymlab = True
+
+    def __init__(self):
+        print os.path.dirname(os.path.realpath(__file__))
+        print os.getcwd()
+        print __file__
+        print __file__+'.feature.hbs'
+
+
+        AromNode.__init__(self)
+        node_name = rospy.get_name()
+        self.node_name = node_name
+        print node_name
+
+        self.pub_motor_a = rospy.Publisher(node_name+"/motor_focus", std_msgs.msg.String, queue_size=1)
+        self.pub_motor_b = rospy.Publisher(node_name+"/motor_clona", std_msgs.msg.String, queue_size=1)
+        self.pub_ostreni_pos = rospy.Publisher(node_name+"/ostreni/position", std_msgs.msg.String, queue_size=1, latch = True)
+        self.pub_iris_pos = rospy.Publisher(node_name+"/iris/position", std_msgs.msg.String, queue_size=1, latch = True)
+
+        self.sub_iris_request = rospy.Subscriber("/ui/keyboard/out", std_msgs.msg.String, self.ui_action)
+        self.sub_ostreni_request = rospy.Subscriber(node_name+"/ostreni/command", std_msgs.msg.String, self.ostreni_set)
+        self.ostreni_request = 10
+        self.ostreni_zmena = True
+        self.sub_iris_request = rospy.Subscriber(node_name+"/iris/command", std_msgs.msg.String, self.iris_set)
+        self.iris_request = 10
+        self.iris_zmena = True
+        self.operation = []
+
+        
+        self.set_feature('external',  {'feature': __file__+'.feature.hbs', 'id': 'motor_focus', 'name': 'Motor Ostreni', 'node_name': node_name, 'toppic': node_name+'/motor_focus'})
+        self.set_feature('hbstep_status__0',  {'id': 'motor_focus', 'name': 'Motor Ostreni', 'node_name': node_name, 'toppic': node_name+'/motor_focus'})
+        self.set_feature('hbstep_status__1',  {'id': 'motor_clona', 'name': 'Motor Clona', 'node_name': node_name, 'toppic': node_name+'/motor_clona'})
+        
+        #rospy.Timer(rospy.Duration(1), self.get_status, oneshot=False)
+
+        #self.motor_a = axis.axis(SPI = self.pymlab, SPI_CS = 0b0001, Direction = True, StepsPerUnit = 1, protocol = 'arom', arom_spi_name = 'telescope1', ACC=100, DEC=100)
+        #self.motor_a.Reset(KVAL_RUN = 0xE0, KVAL_ACC = 0xE0, KVAL_DEC = 0xE0, FS_SPD = 0xFFFF)
+
+        print "AXIS::::", node_name[1:]
+        self.motor_a = axis.axis(SPI = self.pymlab, SPI_CS = 0b0001, Direction = True, StepsPerUnit = 1, protocol = 'arom', arom_spi_name = node_name[1:])
+        #self.motor_a.Reset(KVAL_RUN = 0xE0, KVAL_ACC = 0xE0, KVAL_DEC = 0xE0, FS_SPD = 0xFFFFFF, ACC = 0x30, DEC = 0x30)
+        #self.motor_a.setConfig(EXT_CLK = 0b1, OSC_SEL = 0b110) # Ext clock source: 24 MHz(Crystal/resonator driver disabled)
+        self.motor_a.Setup(MAX_SPEED = 700,
+                       KVAL_ACC=0.4,
+                       KVAL_RUN=0.35,
+                       KVAL_DEC=0.4,
+                       ACC = 20,
+                       DEC = 20,
+                       FS_SPD=3000,
+                       STEP_MODE=None)
+        self.motor_a.Float()
+        self.motor_a.MaxSpeed(100)
+
+        self.motor_b = axis.axis(SPI = self.pymlab, SPI_CS = 0b0010, Direction = True, StepsPerUnit = 1, protocol = 'arom', arom_spi_name = node_name[1:])  
+        #self.AxB.Reset(KVAL_RUN = 0xE0, KVAL_ACC = 0xE0, KVAL_DEC = 0xE0, FS_SPD = 0xFFFFFF, ACC = 0x30, DEC = 0x30)
+        #self.AxB.MaxSpeed(800)
+        self.motor_b.Setup(MAX_SPEED = 700,
+                       KVAL_ACC=0.4,
+                       KVAL_RUN=0.35,
+                       KVAL_DEC=0.4,
+                       ACC = 20,
+                       DEC = 20,
+                       FS_SPD=3000,
+                       STEP_MODE=None)
+
+
+
+
+        #self.motor_b = axis.axis(SPI = self.pymlab, SPI_CS = 0b0010, Direction = True, StepsPerUnit = 1, protocol = 'arom', arom_spi_name = 'telescope1')
+        #self.motor_b.Reset(KVAL_RUN = 0xE0, KVAL_ACC = 0xE0, KVAL_DEC = 0xE0, FS_SPD = 0xFFFF)
+        self.motor_b.Float()
+        self.motor_b.MaxSpeed(0x33FF)
+
+        i = 0
+        nn = self.node_name[1:]
+        rate = rospy.Rate(5)
+        while not rospy.is_shutdown():
+            rate.sleep()
+            try:
+
+                i += 1
+                if i > 10:
+                    i = 0
+                    self.motor_a_status = self.motor_a.getStatus()
+                    self.motor_b_status = self.motor_b.getStatus()
+                    #print self.motor_a_status
+                    self.pub_motor_a.publish(json.dumps(self.motor_a_status, ensure_ascii=False))
+                    self.pub_motor_b.publish(json.dumps(self.motor_b_status, ensure_ascii=False))
+
+                #if (self.motor_a_status['POSITION'] != self.ostreni_request*50):
+                if (self.ostreni_zmena):
+                    rospy.loginfo("Motor FOCUS reapir position %s na %s" %(self.motor_a_status['POSITION_CLC']/20,  self.ostreni_request))
+                    self.motor_a.GoTo(self.ostreni_request*20)
+                    self.ostreni_zmena = False
+                    self.pub_ostreni_pos.publish(str(self.ostreni_request))
+
+                #if (self.motor_b_status['POSITION'] != self.iris_request*50):
+                if (self.iris_zmena):
+                    rospy.loginfo("Motor IRIS reapir position %s na %s" %(self.motor_b_status['POSITION_CLC']/20,  self.iris_request))
+                    self.motor_b.GoTo(self.iris_request*20)
+                    self.iris_zmena = False
+                    self.pub_iris_pos.publish(str(self.iris_request))
+
+
+                if len(self.operation)>0:
+                    req = self.operation.pop(0)
+                    print req
+
+                    if req == nn+'_focusM1':
+                        self.motor_a.GoTo(0)
+
+                    elif req == nn+'_focusP1':
+                        self.motor_a.GoTo(2000)
+
+                    elif req == nn+'_focusM0' or req == nn+'_focusP0':
+                        self.motor_a.Float()
+
+
+                    elif req == nn+'_irisM1':
+                        self.motor_b.GoTo(0)
+
+                    elif req == nn+'_irisP1':
+                        self.motor_b.GoTo(2000)
+
+                    elif req == nn+'_irisM0' or req == nn+'_irisP0':
+                        self.motor_b.Float()
+                
+            except Exception, e:
+                print "err1>", repr(e)
+
+
+
+        self.motor_a.Float()
+        self.motor_b.Float()
+
+    def ostreni_set(self, data):
+        print "ostreni", data
+        rospy.loginfo(data.data)
+        poloha = int(float(data.data))
+
+        if poloha > 100: poloha = 100
+        elif poloha < 0: poloha = 0
+
+        self.ostreni_request = int(poloha)
+        self.ostreni_zmena = True
+
+    def iris_set(self, data):
+        print "iris", data
+        rospy.loginfo(data.data)
+        poloha = int(float(data.data))
+
+        if poloha > 100: poloha = 100
+        elif poloha < 0: poloha = 0
+
+        self.iris_request = int(poloha)
+        self.iris_zmena = True
+
+    def motor_calibrate():
+        pass
+
+    def ui_action(self, msg):
+        data = msg.data
+        nn = self.node_name[1:]
+        if data in [nn+'_close1', nn+'_irisM0', nn+'_irisM1', nn+'_irisP0', nn+'_irisP1', nn+'_focusM0', nn+'_focusM1', nn+'_focusP0', nn+'_focusP1']:
+            print "zprava prijata", data
+            self.operation.append(data)
+            #if data == nn+'_close1':
+            #    self.motor_clona.GoTo(10)
+
+
+
+if __name__ == '__main__':
+    time.sleep(8)
+    m = TelescopePatrolaCtrl()

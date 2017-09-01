@@ -1,0 +1,29 @@
+{
+  "name": "pymlab", 
+  "children": [
+      {
+          "port": 1,
+          "name": "bus_USB",
+          "children": [
+		   {
+	            "type": "i2chub",
+	            "address": 39,
+	            "name": "HUB",
+	            "children": [
+	              
+	              {
+	              	  "channel": 1,
+	                  "type": "i2cspi", 
+	                  "name": "telescope_2"
+	              },
+	              {
+	              	  "channel": 2,
+	                  "type": "i2cspi", 
+	                  "name": "telescope_1"
+	              }
+	          ]
+	        }
+          ]
+      }
+  ]
+}

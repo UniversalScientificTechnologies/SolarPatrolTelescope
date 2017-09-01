@@ -1,0 +1,16 @@
+{
+  "name": "pymlab", 
+  "children": [
+      {
+          "port": 1,
+          "name": "bus_USB",
+           "serial": "003E6BB8",
+          "children": [
+              {
+                  "type": "i2cspi", 
+                  "name": "telescope1"
+              }
+          ]
+      }
+  ]
+}
