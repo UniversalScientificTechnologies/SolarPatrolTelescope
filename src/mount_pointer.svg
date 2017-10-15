@@ -1,0 +1,70 @@
+
+<svg viewBox="0 0 400 400">
+  <defs
+     id="defs4" />
+
+  <g
+     inkscape:label="Vrstva 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-176,-169)">
+    <g
+       id="g4189">
+      <rect
+         y="169.71979"
+         x="177.93994"
+         height="400"
+         width="400"
+         id="rect4153"
+         style="fill:#e0e0ff;fill-opacity:1;stroke:none;stroke-opacity:1" />
+      <rect
+         y="168.46233"
+         x="372.86505"
+         height="400"
+         width="5"
+         id="rect4136"
+         style="fill:#484b4a;fill-opacity:1;stroke:none;stroke-opacity:1" />
+      <rect
+         transform="matrix(0,1,-1,0,0,0)"
+         y="-575.36505"
+         x="365.96231"
+         height="400"
+         width="5"
+         id="rect4136-3"
+         style="fill:#484b4a;fill-opacity:1;stroke:none;stroke-opacity:1" />
+      <text
+         id="textra"
+         y="362.6481"
+         x="520.82861"
+         style="font-style:normal;font-weight:normal;font-size:40px;"
+         >RA</text>
+      <text
+         sodipodi:linespacing="125%"
+         id="text4159"
+         y="200.84872"
+         x="379.10657"
+         style="font-style:normal;font-weight:normal;font-size:40px;">DEC</text>
+    </g>
+    <g
+       id="g4184"
+       transform="translate(-150,-150)">
+      <ellipse
+         ry="6.9458599"
+         rx="6.9458604"
+         cy="318.82184"
+         cx="327.49173"
+         id="path4163"
+         style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:2;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+      <path
+         inkscape:connector-curvature="0"
+         id="path4167"
+         d="m 316.2907,318.82184 22.40206,0"
+         style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+      <path
+         inkscape:connector-curvature="0"
+         id="path4167-6"
+         d="m 327.49173,307.62081 0,22.40206"
+         style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+    </g>
+  </g>
+</svg>

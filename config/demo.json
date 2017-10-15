@@ -8,32 +8,38 @@
 		   {
 	                  "type": "i2cspi", 
 	                  "name": "telescope_1",
-	                  "address": 42
+	                  "address": 42,
+	                  "_adresa": "0x2a"
 	              },
 	              {
 	                  "type": "i2cspi", 
 	                  "name": "telescope_2",
-	                  "address": 46
+	                  "address": 46,
+	                  "_adresa": "0x2e"
 	              },
 	              {
 	                  "type": "i2cspi", 
 	                  "name": "mount_ra",
-	                  "address": 40
+	                  "address": 40,
+	                  "_adresa": "0x28"
 	              },
 	              {
 	                  "type": "i2cspi", 
 	                  "name": "mount_dec",
-	                  "address": 44
+	                  "address": 44,
+	                  "_adresa": "0x2c"
 	              },
 	              {
 	                  "type": "i2cspi", 
 	                  "name": "mount_time",
-	                  "address": 41
+	                  "address": 45,
+	                  "_adresa": "0x2d"
 	              },
 	              {
 	              	  "name": "gpio_dome",
 	                  "type": "TCA6416A",
-	                  "address": 33
+	                  "address": 33,
+	                  "_adresa": "0x21"
 	              }
 
           ]

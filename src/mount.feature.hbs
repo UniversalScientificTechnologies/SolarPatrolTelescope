@@ -1,0 +1,282 @@
+<div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xl-12">
+<div class="card">
+    <div class="card-header primary-color white-text">Mount control</div>
+    <div class="card-block" style="padding:0pt;">
+<div class="row" style="margin:0pt;" >
+  <div class="col-xs-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+
+
+
+<svg viewBox="0 0 400 400" width="100%" height="100%">
+  <defs
+     id="defs4" />
+
+  <g
+     inkscape:label="Vrstva 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-176,-169)">
+    <g
+       id="g4189">
+      <rect
+         y="169.71979"
+         x="177.93994"
+         height="400"
+         width="400"
+         id="rect4153"
+         style="fill:#e0e0ff;fill-opacity:1;stroke:none;stroke-opacity:1" />
+      <rect
+         y="168.46233"
+         x="372.86505"
+         height="400"
+         width="5"
+         id="rect4136"
+         style="fill:#484b4a;fill-opacity:1;stroke:none;stroke-opacity:1" />
+      <rect
+         transform="matrix(0,1,-1,0,0,0)"
+         y="-575.36505"
+         x="365.96231"
+         height="400"
+         width="5"
+         id="rect4136-3"
+         style="fill:#484b4a;fill-opacity:1;stroke:none;stroke-opacity:1" />
+      <text
+         id="textra"
+         y="362.6481"
+         x="520.82861"
+         style="font-style:normal;font-weight:normal;font-size:40px;"
+         >RA</text>
+      <text
+         sodipodi:linespacing="125%"
+         id="text4159"
+         y="200.84872"
+         x="379.10657"
+         style="font-style:normal;font-weight:normal;font-size:40px;">DEC</text>
+    </g>
+    <g
+       id="svg_pointer"
+       transform="translate(-150,-150)">
+      <ellipse
+         ry="6.9458599"
+         rx="6.9458604"
+         cy="318.82184"
+         cx="327.49173"
+         id="path4163"
+         style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:2;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+      <path
+         inkscape:connector-curvature="0"
+         id="path4167"
+         d="m 316.2907,318.82184 22.40206,0"
+         style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+      <path
+         inkscape:connector-curvature="0"
+         id="path4167-6"
+         d="m 327.49173,307.62081 0,22.40206"
+         style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+    </g>
+  </g>
+</svg>
+</div>
+<div class="col-xs-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+
+<br>
+<form>
+  <div class="form-group" style="margin-bottom:0.3em;">
+    <label for="" style="margin:0pt;">RA axis</label>
+    <input type="number" class="form-control" id="ra"placeholder="RA offset range" style="padding: 0.1em 0.2em;">
+  </div>
+  <div class="form-group" style="margin-bottom:0.3em;">
+    <label for="" style="margin:0pt;">DEC axis</label>
+    <input type="number" class="form-control" id="dec"placeholder="DEC offset range" style="padding: 0.1em 0.2em;">
+  </div>
+
+
+  <label for="" style="margin:0pt;">RA, DEC axis control</label>
+  <div class="form-group" style="margin-bottom:0.3em;">
+      <table style="margin-left: auto; margin-right: auto;">
+        <tr>
+          <td></td>
+          <td><i onmousedown="sendKey('DEC_P1')" onmouseup="sendKey('DEC_P0')" class="fa fa-arrow-circle-o-up fa-3x" aria-hidden="true"></i></td>
+          <td></td>
+          <td><div style="width:20pt;"></div></td>
+          <td><button onmousedown="sendKey('speed_31')" class="btn btn-secondary" type="button" id="btn_spd3">Speed 3</button></td>
+        </tr>
+        <tr>
+          <td><i onmousedown="sendKey('RA_P1')" onmouseup="sendKey('RA_P0')" class="fa fa-arrow-circle-o-left fa-3x" aria-hidden="true"></i></td>
+          <td></td>
+          <td><i onmousedown="sendKey('RA_M1')" onmouseup="sendKey('RA_M0')" class="fa fa-arrow-circle-o-right fa-3x" aria-hidden="true"></i></td>
+          <td></td>
+          <td><button onmousedown="sendKey('speed_21')" class="btn btn-secondary" type="button" id="btn_spd2">Speed 2</button></td>
+        </tr>
+        <tr>
+          <td></td>
+          <td><i onmousedown="sendKey('DEC_M1')" onmouseup="sendKey('DEC_M0')" class="fa fa-arrow-circle-o-down fa-3x" aria-hidden="true"></i></td>
+          <td></td>
+          <td></td>
+          <td><button onmousedown="sendKey('speed_11')" class="btn btn-secondary" type="button" id="btn_spd1">Speed 1</button></td>
+        </tr>
+
+      </table>
+  </div>
+
+  <label for="" style="margin:0pt;">Time axis control</label>
+  <div class="form-group" style="margin-bottom:0.3em;">
+    <div class="btn-group" role="group" style="padding: 0.1em 0.2em; margin-left: auto; margin-right: auto;">
+          <!-- <button class="btn btn-secondary btn_time" onmousedown="sendKey('tracking_')" id="btn_time-2" type="button" style="padding: 0.2em 0.3em;">-2</button>
+          <button class="btn btn-secondary btn_time" onmousedown="sendKey('tracking_')" id="btn_time-1" type="button" style="padding: 0.2em 0.3em;">-1</button> -->
+          <button class="btn btn-secondary btn_time" onmousedown="sendKey('tracking_toggle0')" id="btn_time0" type="button" style="padding: 0.2em 0.3em;">ON/OFF</button>
+          <!-- <button class="btn btn-secondary btn_time" onmousedown="sendKey('tracking_')" id="btn_time1" type="button" style="padding: 0.2em 0.3em;">+1</button>
+          <button class="btn btn-secondary btn_time" onmousedown="sendKey('tracking_')" id="btn_time2" type="button" style="padding: 0.2em 0.3em;">+2</button> -->
+    </div>
+  </div>
+</form>
+<form class="form-inline" role="form">
+
+  <label for="" style="margin:0pt;">Auto dome ctrl (period, duration)</label>
+  <div class="form-group" style="margin-bottom:0.3em;">
+      <div class="btn-group" role="group" style="padding: 0.1em 0.2em; margin-left: auto; margin-right: auto;">
+          <button class="btn btn-secondary" onmousedown="sendKey('dome_toggle0')" id="btn_dome_mode" type="button" style="padding: 0.2em 0.3em;">DOME</button>
+          <input class="form-control" type="number" name="period" id="period" value="5" style="padding: 0.2em 0.3em; width: 5em;">
+          <input class="form-control" type="number" name="duration" id="duration" value="1" style="padding: 0.2em 0.3em; width: 5em;">
+          <button class="btn btn-secondary" onmousedown="update_dome_movement()" id="btn_time0" type="button" style="padding: 0.2em 0.3em;">update</button>
+      </div>
+  </div>
+
+</form>
+
+</div>
+</div>
+
+</div>
+</div>
+</div>
+
+
+
+<script type="text/javascript">
+
+var UpdateDome = new ROSLIB.Topic({
+    ros : ros,
+    name : '{{FeatureParams['node_name']}}/dome/setting',
+    messageType : 'solar_patrol_telescope/PatrolaDomeSettings'
+});
+
+function update_dome_movement(){
+  console.log("update");
+  /*$('#period').val();
+  $('#duration').val();*/
+  //console.log($('#period').val(), $('#duration').val())
+  var msg = new ROSLIB.Message({
+    dome_mode: 2,
+    dome_period:  $('#period').val()*1.0,
+    dome_duration: $('#duration').val()*1.0
+  });
+  console.log(msg, UpdateDome);
+  UpdateDome.publish(msg);
+}
+ 
+
+var mount_status = new ROSLIB.Topic({
+    ros : ros,
+    name : '{{FeatureParams['node_name']}}/status',
+    messageType : 'solar_patrol_telescope/PatrolaMountStatus'
+});
+
+mount_status.subscribe(function(msg) {
+
+    var svg_ra = -150+398*msg.ra/100
+    var svg_dec = -150+398*msg.dec/100
+
+    $("#ra").val(msg.ra);
+    $("#dec").val(msg.dec);
+    $("#svg_pointer").attr("transform", "translate("+svg_ra+","+svg_dec+")");
+
+
+    switch(msg.speed_mode) {
+    case 1:
+        $("#btn_spd1").addClass('btn-success');
+        $("#btn_spd2").removeClass('btn-success');
+        $("#btn_spd3").removeClass('btn-success');
+        break;
+    case 2:
+        $("#btn_spd2").addClass('btn-success');
+        $("#btn_spd1").removeClass('btn-success');
+        $("#btn_spd3").removeClass('btn-success');
+        break;
+    case 3:
+        $("#btn_spd3").addClass('btn-success');
+        $("#btn_spd1").removeClass('btn-success');
+        $("#btn_spd2").removeClass('btn-success');
+        break;
+    default:   
+    }
+
+    console.log(msg.dome_mode);
+    switch(msg.dome_mode) {
+    case 0:
+        console.log('nula');
+        $("#btn_dome_mode").removeClass('btn-success');
+        $("#btn_dome_mode").addClass('btn-danger');
+        break;
+    case 1:
+        console.log('jedna');
+        $("#btn_dome_mode").removeClass('btn-danger');
+        $("#btn_dome_mode").addClass('btn-success');
+        break;
+    
+    default:   
+    }
+
+
+
+    switch(msg.time_machine) {
+    case 0:
+        $(".btn_time").removeClass('btn-success');
+        $(".btn_time").removeClass('btn-danger');
+        $("#btn_time0").addClass('btn-danger');
+        break;
+    case 1:
+        $(".btn_time").removeClass('btn-success');
+        $(".btn_time").removeClass('btn-danger');
+        $("#btn_time0").addClass('btn-success');
+        break;
+    case 2:
+        $(".btn_time").removeClass('btn-success');
+        $(".btn_time").removeClass('btn-danger');
+        $("#btn_time2").addClass('btn-success');
+        break;
+    case -1:
+        $(".btn_time").removeClass('btn-success');
+        $(".btn_time").removeClass('btn-danger');
+        $("#btn_time-1").addClass('btn-success');
+        break;
+    case -2:
+        $(".btn_time").removeClass('btn-success');
+        $(".btn_time").removeClass('btn-danger');
+        $("#btn_time-2").addClass('btn-success');
+        break;
+    default:   
+    
+    }
+
+
+
+});
+
+
+    
+var KeyboardSim = new ROSLIB.Topic({
+    ros : ros,
+    name : '/ui/keyboard/out',
+    messageType : 'std_msgs/String'
+});
+
+function sendKey(msg){
+    console.log(msg);
+    var msg = new ROSLIB.Message({
+        data:  msg
+    });
+    KeyboardSim.publish(msg);
+}
+
+</script>

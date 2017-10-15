@@ -8,6 +8,7 @@ import axis
 import json
 import os
 
+import solar_patrol_telescope.msg
 from arom_helper import AromNode
 
 
@@ -23,6 +24,7 @@ class SolarLab(AromNode):
         print __file__+'.feature.hbs'
 
         self.speed_mode = 1
+        self.time_speed = 1
         self.tracking = False
         self.operation = []
 
@@ -31,25 +33,26 @@ class SolarLab(AromNode):
         node_name = rospy.get_name()
         print node_name
 
+
         self.pub_motor_ra = rospy.Publisher(node_name+"/motor_ra", std_msgs.msg.String, queue_size=1)
         self.pub_motor_dec = rospy.Publisher(node_name+"/motor_dec", std_msgs.msg.String, queue_size=1)
         self.pub_motor_time = rospy.Publisher(node_name+"/motor_time", std_msgs.msg.String, queue_size=1)
+        self.status = rospy.Publisher(node_name+"/status", solar_patrol_telescope.msg.PatrolaMountStatus, queue_size=5, latch=True)
         #self.pub_ostreni_pos = rospy.Publisher(node_name+"/ostreni/position", std_msgs.msg.String, queue_size=1, latch = True)
         #self.pub_iris_pos = rospy.Publisher(node_name+"/iris/position", std_msgs.msg.String, queue_size=1, latch = True)
 
+
         self.sub_iris_request = rospy.Subscriber("/ui/keyboard/out", std_msgs.msg.String, self.ui_action)
+        self.sub_dome_request = rospy.Subscriber(node_name+'/dome/setting', solar_patrol_telescope.msg.PatrolaDomeSettings, self.dome_update)
 
 
-        #self.set_feature('external',  {'feature': __file__+'.feature.hbs', 'id': 'motor_focus', 'name': 'Motor Ostreni', 'node_name': node_name, 'toppic': node_name+'/motor_focus'})
+        self.set_feature('external',  {'feature': __file__+'.feature.hbs', 'id': 'mount_position', 'node_name': node_name, 'toppic': node_name+'/status'})
         self.set_feature('hbstep_status__0',  {'id': 'motor_ra', 'name': 'Motor ra', 'node_name': node_name, 'toppic': node_name+'/motor_ra'})
         self.set_feature('hbstep_status__1',  {'id': 'motor_dec', 'name': 'Motor dec', 'node_name': node_name, 'toppic': node_name+'/motor_dec'})
         self.set_feature('hbstep_status__2',  {'id': 'motor_time', 'name': 'Motor time', 'node_name': node_name, 'toppic': node_name+'/motor_time'})
         
         #rospy.Timer(rospy.Duration(1), self.get_status, oneshot=False)
 
-
-        self.pymlab(device="gpio_dome", method="config_ports", parameters=str(dict(port0 = 0x00, port1 = 0x00)))
-        self.pymlab(device="gpio_dome", method="set_ports", parameters=str(dict(port0 = 0x00, port1 = 0x00)))
 
         print "AXIS::::", node_name[1:]
         self.motor_ra = axis.axis(SPI = self.pymlab, SPI_CS = 0b0001, Direction = True, StepsPerUnit = 1, protocol = 'arom', arom_spi_name = 'mount_ra')
@@ -109,8 +112,16 @@ class SolarLab(AromNode):
 
 
 
-        i = 0
-        rate = rospy.Rate(5)
+        print "nastavit konfiguraci pro gpio"
+        self.dome_auto = False
+        self.dome_move_last = time.time()
+        self.dome_move_period = 5
+        self.dome_move_time = 1
+        self.pymlab(device="gpio_dome", method="config_ports", parameters=str(dict(port0 = 0x00, port1 = 0x00)))
+        self.pymlab(device="gpio_dome", method="set_ports", parameters=str(dict(port0 = 0x00, port1 = 0x00)))
+
+        i = 10
+        rate = rospy.Rate(10)
         while not rospy.is_shutdown():
             rate.sleep()
             try:
@@ -125,6 +136,8 @@ class SolarLab(AromNode):
                     self.pub_motor_ra.publish(json.dumps(self.motor_ra_status, ensure_ascii=False))
                     self.pub_motor_dec.publish(json.dumps(self.motor_dec_status, ensure_ascii=False))
                     self.pub_motor_time.publish(json.dumps(self.motor_time_status, ensure_ascii=False))
+
+                self.status.publish(ra = self.motor_ra_status['POSITION_SW'], dec=self.motor_dec_status['POSITION_SW'], time_machine = self.time_speed*int(self.tracking), speed_mode = self.speed_mode, dome_mode = int(self.dome_auto))
 
                 if len(self.operation)>0:
                     req = self.operation.pop(0)
@@ -168,31 +181,36 @@ class SolarLab(AromNode):
 
 
                     elif 'speed_11' == req:
+                        self.speed_mode = 1
                         self.motor_ra.MaxSpeed(100)
                         self.motor_dec.MaxSpeed(100)
 
                     elif 'speed_21' == req:
+                        self.speed_mode = 2
                         self.motor_ra.MaxSpeed(200)
                         self.motor_dec.MaxSpeed(200)
 
                     elif 'speed_31' == req:
+                        self.speed_mode = 3
                         self.motor_ra.MaxSpeed(500)
                         self.motor_dec.MaxSpeed(500)
 
 
-
                     elif 'dome_a1' == req and self.motor_dec_status['POSITION'] < 10000:
-                        print 'dome ctrl'
+                        print 'dome ctrl A'
                         self.pymlab(device="gpio_dome", method="set_ports", parameters=str(dict(port0 = 1, port1 = 0)))
 
                     elif 'dome_b1' == req:
-                        print 'dome ctrl'
+                        print 'dome ctrl B'
                         self.pymlab(device="gpio_dome", method="set_ports", parameters=str(dict(port0 = 2, port1 = 0)))
 
                     elif 'dome_a0' == req or 'dome_b0' == req:
-                        print 'dome ctrl'
+                        print 'dome ctrl - stop'
                         self.pymlab(device="gpio_dome", method="set_ports", parameters=str(dict(port0 = 0, port1 = 0)))
 
+                    elif 'dome_toggle0' == req:
+                        print 'dome ctrl - auto'
+                        self.dome_auto = not self.dome_auto
 
 
                     elif 'tracking_toggle0' == req:
@@ -203,6 +221,13 @@ class SolarLab(AromNode):
                         else:
                             print "tracking OFF"
                             self.motor_time.Float()
+
+                if self.dome_auto and (self.dome_move_last + self.dome_move_period) < time.time():
+                    print "DOME AUTO MOVE"
+                    self.pymlab(device="gpio_dome", method="set_ports", parameters=str(dict(port0 = 2, port1 = 0)))
+                    time.sleep(self.dome_move_time)
+                    self.pymlab(device="gpio_dome", method="set_ports", parameters=str(dict(port0 = 0, port1 = 0)))
+                    self.dome_move_last = time.time()
 
 
                         
@@ -242,17 +267,17 @@ class SolarLab(AromNode):
         print data.data
         req = str(data.data)
 
-        if req in ['RA_M0', 'RA_M1', 'DEC_M0', 'DEC_M1', 'RA_P0', 'RA_P1', 'DEC_P0', 'DEC_P1', 'tracking_toggle0', 'dome_a0', 'dome_a1', 'dome_b0', 'dome_b1', 'speed_11', 'speed_21', 'speed_31', 'RA_center1', 'DEC_center1']:
+        if req in ['RA_M0', 'RA_M1', 'DEC_M0', 'DEC_M1', 'RA_P0', 'RA_P1', 'DEC_P0', 'DEC_P1', 'tracking_toggle0', 'dome_a0', 'dome_a1', 'dome_b0', 'dome_b1', 'dome_toggle0', 'speed_11', 'speed_21', 'speed_31', 'RA_center1', 'DEC_center1']:
             self.operation.append(req)
-            '''
-
-            '''
 
         else:
             print "tohle neni muj prikaz"
 
-
+    def dome_update(self, data):
+        print data
+        self.dome_move_period  =data.dome_period
+        self.dome_move_time = data.dome_duration
 
 if __name__ == '__main__':
-    time.sleep(6)
+    time.sleep(10)
     m = SolarLab()

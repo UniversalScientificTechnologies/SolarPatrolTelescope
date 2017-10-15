@@ -1,0 +1,3 @@
+int8 dome_mode
+float32 dome_period
+float32 dome_duration

@@ -160,4 +160,5 @@ class user_input(arom_helper.AromNode):
 
 
 if __name__ == '__main__':
+    time.sleep(5)
     ui = user_input()

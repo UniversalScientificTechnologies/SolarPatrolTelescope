@@ -12,7 +12,7 @@
 
     <div class="row">
     	<div class="col-xs-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
-    		Clona <span id="pos-clona"></span><small> (0-21cm)</small>
+    		Clona <span id="pos-clona"></span><small><br>(0-{{FeatureParams['iris_range']}}cm)</small>
     		<input type="range" class="form-control" min="0" max="100" value="0" id="slider-clona">
 			<div class="input-group">
   				<input type="number" class="form-control" min="0" max="21" value="0" id="val_clona">
@@ -24,7 +24,7 @@
 
     	</div>
     	<div class="col-xs-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
-    		Ostreni <span id="pos-ostreni"></span><small> (0-30cm)</small>
+    		Ostreni <span id="pos-ostreni"></span><small><br>(0-{{FeatureParams['focus_range']}}cm)</small>
     		<input type="range" class="form-control" min="0" max="100" value="0" id="slider-ostreni">
 			<div class="input-group">
   				<input type="number" class="form-control" min="0" max="30" value="0" id="val_ostreni">
@@ -47,6 +47,13 @@
 
 
 <script type="text/javascript">
+
+function round(num,n){
+  return parseFloat(Math.round(num * Math.pow(10, n)) /Math.pow(10,n)).toFixed(n);
+}
+
+var focus_range = {{FeatureParams['focus_range']}}/100;
+var iris_range = {{FeatureParams['iris_range']}}/100;
 
 var telescope_focus_set = new ROSLIB.Topic({
     ros : ros,
@@ -84,7 +91,7 @@ telescope_focus_position.subscribe(function(msg) {
     console.log(msg);
     $("#img-ostreni").attr('transform', "translate(-165.72391,"+String(-2*msg.data)+")");
     $("#slider-ostreni").val(msg.data);
-    $("#pos-ostreni").html(msg.data+" % "+ msg.data*0.30 +" cm");
+    $("#pos-ostreni").html(round(msg.data,2)+"% "+ round(msg.data*focus_range,2) +"cm");
 });
 
 var telescope_iris_position = new ROSLIB.Topic({
@@ -97,7 +104,7 @@ telescope_iris_position.subscribe(function(msg) {
     console.log(msg);
     $("#img-clona").attr('r',msg.data);
     $("#slider-clona").val(msg.data);
-    $("#pos-clona").html(msg.data+" % "+ msg.data*0.21 +" cm");
+    $("#pos-clona").html(round(msg.data,2)+"% "+ round(msg.data*iris_range,2) +"cm");
 });
 
 
@@ -112,29 +119,29 @@ telescope_status.subscribe(function(msg) {
 });
 
  $('#btn_ostreni').on("click", function(){
-    console.log("Odesilam data", $('#val_ostreni').val()/0.30)
+    console.log("Odesilam data", $('#val_ostreni').val()/focus_range)
     var msg = new ROSLIB.Message({
-        data:  String($('#val_ostreni').val()/0.30)
+        data:  String($('#val_ostreni').val()/focus_range)
     });
     telescope_focus_set.publish(msg);
  });
 
  $('#btn_clona').on("click", function(){
-    console.log("Odesilam data", $('#val_clona').val()/0.21)
+    console.log("Odesilam data", $('#val_clona').val()/iris_range)
     var msg = new ROSLIB.Message({
-        data:  String($('#val_clona').val()/0.21)
+        data:  String($('#val_clona').val()/iris_range)
     });
     telescope_iris_set.publish(msg);
  });
 
  $('#slider-ostreni').on("change", function(){
     console.log($("#slider-ostreni").val());
-    $('#val_ostreni').val($('#slider-ostreni').val()*0.30);
+    $('#val_ostreni').val($('#slider-ostreni').val()*focus_range);
  });
 
  $('#slider-clona').on("change", function(){
     console.log( $("#slide-_clona").val() );
-    $('#val_clona').val($('#slider-clona').val()*0.21);
+    $('#val_clona').val($('#slider-clona').val()*iris_range);
  });
 
 
