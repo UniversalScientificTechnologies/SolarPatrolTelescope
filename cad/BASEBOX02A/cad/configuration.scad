@@ -1,7 +1,7 @@
 //Název boxu (zařízení)
 box_jmeno="";
 
-vzdalenost_der = 10.16; //rozteč děr mezi sebou
+vzdalenost_der = 10; //rozteč děr mezi sebou
 radidus_hrany = 3; //radius zaobleni sloupku
 vzdalenost_od_okraje = 5.2; //vzdalenost stredu upevnovaci diry od kraje desky
 pocet_der1 = 16; //pocet děr v ose y
@@ -13,7 +13,7 @@ pocet_der2 = 4; //pocet der v ose x
 //------------------------------------------------------------
 //BOCNICE
 vyska_bocnice=20;
-tloustka_bocnice=3;
+tloustka_bocnice=2;
 
 
 //PLBASE PARAMETRY
