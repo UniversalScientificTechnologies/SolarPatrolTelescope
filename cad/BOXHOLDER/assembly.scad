@@ -1,7 +1,7 @@
 $fn=60;
 
 polomer=38;
-sirka_drzaku=8;
+sirka_drzaku=16;
 sila_drzaku=4;
 
 prumer_sroubu=3.2;
