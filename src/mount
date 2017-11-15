@@ -154,8 +154,8 @@ class SolarLab(AromNode):
         self.dome_move_last = time.time()
         self.dome_move_period = 5
         self.dome_move_time = 1
-        #self.pymlab(device="gpio_dome", method="config_ports", parameters=str(dict(port0 = 0x00, port1 = 0x00)))
-        #self.pymlab(device="gpio_dome", method="set_ports", parameters=str(dict(port0 = 0x00, port1 = 0x00)))
+        self.pymlab(device="gpio_dome", method="config_ports", parameters=str(dict(port0 = 0x00, port1 = 0x00)))
+        self.pymlab(device="gpio_dome", method="set_ports", parameters=str(dict(port0 = 0x00, port1 = 0x00)))
 
         i = 10
         rate = rospy.Rate(10)

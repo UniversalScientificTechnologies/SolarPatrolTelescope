@@ -7,9 +7,15 @@
           "children": [
 	              {
 	                  "type": "i2cspi", 
-	                  "name": "telescope",
+	                  "name": "telescope1",
 	                  "address": 46,
 	                  "_adresa": "0x2e"
+	              },
+	              {
+	                  "type": "i2cspi", 
+	                  "name": "telescope2",
+	                  "address": 42,
+	                  "_adresa": "0x2a"
 	              },
 	              {
 	                  "type": "i2cspi", 
