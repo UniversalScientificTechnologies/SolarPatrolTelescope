@@ -1,0 +1,20 @@
+{
+    "dec": {
+        "last_pos": 8792, 
+        "speed_3": 800, 
+        "speed_2": 700, 
+        "speed_1": 600, 
+        "pos_update": 1510940076.330052, 
+        "home": 17000
+    }, 
+    "ra": {
+        "last_pos": 13147, 
+        "speed_3": 800, 
+        "speed_2": 700, 
+        "speed_1": 600, 
+        "pos_update": 1510940076.157503, 
+        "home": 17000
+    }, 
+    "time": {
+        "speed_solar": 500
+    }

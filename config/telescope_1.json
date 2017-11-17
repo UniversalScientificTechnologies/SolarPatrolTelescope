@@ -2,20 +2,19 @@
 	"spi": "telescope1",
 	"focus":{
 		"pin": 2,
-		"min": 15,
-		"max": 16000,
-		"home": 15,
+		"min": 100,
+		"max": 17000,
+		"home": 7000,
 		"range": 35,
-		"speed": 500
+		"speed": 1000
 	},
 	"iris":{
 		"pin": 1,
-		"min": 15,
-		"max": 2500,
-		"home": 15,
+		"min": 20,
+		"max": 3000,
+		"home": 20,
 		"range": 20,
-		"speed": 100
-
+		"speed": 30
 	}
 
 }

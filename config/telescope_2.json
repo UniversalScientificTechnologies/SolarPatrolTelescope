@@ -4,18 +4,17 @@
 		"pin": 1,
 		"min": 15,
 		"max": 16000,
-		"home": 15,
+		"home": 100,
 		"range": 35,
-		"speed": 500
+		"speed": 10
 	},
 	"iris":{
 		"pin": 2,
-		"min": 15,
-		"max": 2500,
-		"home": 15,
+		"min": 30,
+		"max": 3150,
+		"home": 50,
 		"range": 20,
-		"speed": 50
-
+		"speed": 100
 	}
 
 }

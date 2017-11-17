@@ -124,7 +124,8 @@
     <div class="btn-group" role="group" style="padding: 0.1em 0.2em; margin-left: auto; margin-right: auto;">
           <!-- <button class="btn btn-secondary btn_time" onmousedown="sendKey('tracking_')" id="btn_time-2" type="button" style="padding: 0.2em 0.3em;">-2</button>
           <button class="btn btn-secondary btn_time" onmousedown="sendKey('tracking_')" id="btn_time-1" type="button" style="padding: 0.2em 0.3em;">-1</button> -->
-          <button class="btn btn-secondary btn_time" onmousedown="sendKey('tracking_toggle0')" id="btn_time0" type="button" style="padding: 0.2em 0.3em;">ON/OFF</button>
+          <button class="btn btn-secondary btn_time" onmousedown="sendKey('tracking_toggle0')" id="btn_time0" type="button" style="padding: 0.2em 0.3em;">Time ON/OFF</button>
+          <button class="btn btn-secondary" onmousedown="sendKey('mount_init1')" id="btn_init" type="button" style="padding: 0.2em 0.3em;">Calibrate mount</button>
           <!-- <button class="btn btn-secondary btn_time" onmousedown="sendKey('tracking_')" id="btn_time1" type="button" style="padding: 0.2em 0.3em;">+1</button>
           <button class="btn btn-secondary btn_time" onmousedown="sendKey('tracking_')" id="btn_time2" type="button" style="padding: 0.2em 0.3em;">+2</button> -->
     </div>
@@ -185,8 +186,8 @@ var mount_status = new ROSLIB.Topic({
 mount_status.subscribe(function(msg) {
     console.log("r, dec", msg.ra, msg.dec)
 
-    var svg_ra = -150+398*msg.ra/3331000
-    var svg_dec = -150+398*msg.dec/3331000
+    var svg_ra = 50+ (msg.ra-50)*4
+    var svg_dec = 50+ (msg.dec-50)*4
 
     $("#ra").val(msg.ra);
     $("#dec").val(msg.dec);

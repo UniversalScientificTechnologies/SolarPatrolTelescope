@@ -28,8 +28,8 @@ class SolarLab(AromNode):
         self.tracking = False
         self.operation = []
 
-        self.ra_range = [100, 1000000]
-        self.dec_range = [100, 1000000]
+        self.ra_range = [100, 30000]
+        self.dec_range = [100, 30000]
 
         #
         # 5250 - stred dec
@@ -39,6 +39,13 @@ class SolarLab(AromNode):
         AromNode.__init__(self)
         node_name = rospy.get_name()
         print node_name
+
+        print "config file:", '/home/odroid/config'+node_name+'.json'
+        self.config_file = '/home/odroid/config'+node_name+'.json'
+        with open(self.config_file) as json_data:
+            self.conf = json.load(json_data)
+
+        print self.conf
 
 
         self.pub_motor_ra = rospy.Publisher(node_name+"/motor_ra", std_msgs.msg.String, queue_size=1)
@@ -60,93 +67,24 @@ class SolarLab(AromNode):
         
         #rospy.Timer(rospy.Duration(1), self.get_status, oneshot=False)
 
+        self.reinitMotors()
 
-        print "AXIS::::", node_name[1:]
-        self.motor_ra = axis.axis(SPI = self.pymlab, SPI_CS = 0b0001, Direction = True, StepsPerUnit = 1, protocol = 'arom', arom_spi_name = 'mount_ra')
-        self.motor_ra.Setup(
-                       MAX_SPEED = 2000,
-                       KVAL_ACC=0.3,
-                       KVAL_RUN=0.3,
-                       KVAL_DEC=0.3,
-                       ACC = 100,
-                       DEC = 700,
-                       FS_SPD=3000,
-                       STEP_MODE=None)
-        self.motor_ra.Float()
-        self.motor_ra.MaxSpeed(600)
-        self.motor_ra.SetSwRange(self.ra_range[0], self.ra_range[1])
+        self.motor_ra.GoToDir(self.conf['ra']['home'])
+        self.motor_dec.GoToDir(self.conf['dec']['home'])
+        #while self.motor_ra.IsBusy() or self.motor_dec.IsBusy():
+        #    time.sleep(0.7)
+        ##    self.motor_ra_status = self.motor_ra.getStatus()
+         #   self.motor_dec_status = self.motor_dec.getStatus()
+        #    self.motor_time_status = self.motor_time.getStatus()
 
-        self.motor_dec = axis.axis(SPI = self.pymlab, SPI_CS = 0b0001, Direction = True, StepsPerUnit = 1, protocol = 'arom', arom_spi_name = 'mount_dec')  
-        time.sleep(0.2)
-        self.motor_dec.Setup(
-                       MAX_SPEED = 2000,
-                       KVAL_ACC=0.3,
-                       KVAL_RUN=0.3,
-                       KVAL_DEC=0.3,
-                       ACC = 100,
-                       DEC = 700,
-                       FS_SPD=3000,
-                       STEP_MODE=None)
-
-        print "GoTo 10000"
-
-        self.motor_dec.Float()
-        self.motor_dec.MaxSpeed(600)
-        #self.motor_dec.SetSwRange(100, 10000)
-        self.motor_dec.SetSwRange(self.dec_range[0], self.dec_range[1])
-
-        self.motor_time = axis.axis(SPI = self.pymlab, SPI_CS = 0b0001, Direction = True, StepsPerUnit = 1, protocol = 'arom', arom_spi_name = 'mount_time')  
-        time.sleep(0.2)
-        self.motor_time.Setup(
-                       MAX_SPEED = 2000,
-                       KVAL_ACC=0.2,
-                       KVAL_RUN=0.2,
-                       KVAL_DEC=0.2,
-                       ACC = 500,
-                       DEC = 500,
-                       FS_SPD=3000,
-                       STEP_MODE=None)
-        self.motor_time.Float()
-        self.motor_time.MaxSpeed(500)
-
-        #self.motor_ra.MoveWait(-1000)
-        #self.motor_ra.GoTo(10000)
-        #self.motor_dec.GoTo(10000)
-        #self.motor_ra.MoveWait(-1000)
-
-        #self.motor_dec.Move(self.dec_range[1])
-        self.motor_ra.Move(self.ra_range[1])
-
-        self.motor_ra.getStatus()
-        self.motor_dec.getStatus()
-
-
-        while self.motor_ra.IsBusy() or self.motor_dec.IsBusy():
-            print "cekam"
-            time.sleep(0.7)
-            #self.motor_ra.getStatus()
-            #self.motor_dec.getStatus()
-            self.motor_ra_status = self.motor_ra.getStatus()
-            self.motor_dec_status = self.motor_dec.getStatus()
-            self.motor_time_status = self.motor_time.getStatus()
-
-            print self.motor_ra_status
             
-            self.pub_motor_ra.publish(json.dumps(self.motor_ra_status, ensure_ascii=False))
-            self.pub_motor_dec.publish(json.dumps(self.motor_dec_status, ensure_ascii=False))
-            self.pub_motor_time.publish(json.dumps(self.motor_time_status, ensure_ascii=False))
-        self.motor_dec.clearStatus()
-        self.motor_ra.clearStatus()
+        #    self.pub_motor_ra.publish(json.dumps(self.motor_ra_status, ensure_ascii=False))
+        #    self.pub_motor_dec.publish(json.dumps(self.motor_dec_status, ensure_ascii=False))
+        #    self.pub_motor_time.publish(json.dumps(self.motor_time_status, ensure_ascii=False))
 
-        print self.motor_ra.getStatus()
-        print "prejezd do vychozi polohy"
-        self.motor_ra.GoTo((500+10000)/2)
-        self.motor_dec.GoTo((500+10000)/2)
-        while self.motor_ra.IsBusy() or self.motor_dec.IsBusy():
-            time.sleep(0.4)
-        print "jsem uprostred"
-        self.motor_ra.Float()
-        self.motor_dec.Float()
+        #print "jsem uprostred"
+        #self.motor_ra.Float()
+        #self.motor_dec.Float()
 
 
         print "nastavit konfiguraci pro gpio"
@@ -170,11 +108,14 @@ class SolarLab(AromNode):
                     self.motor_dec_status = self.motor_dec.getStatus()
                     self.motor_time_status = self.motor_time.getStatus()
 
-                    print self.motor_ra_status
+                    #print self.motor_ra_status
                     
                     self.pub_motor_ra.publish(json.dumps(self.motor_ra_status, ensure_ascii=False))
                     self.pub_motor_dec.publish(json.dumps(self.motor_dec_status, ensure_ascii=False))
                     self.pub_motor_time.publish(json.dumps(self.motor_time_status, ensure_ascii=False))
+
+                    self.save_config()
+
 
                 self.status.publish(ra = self.motor_ra_status['POSITION_SW'], dec=self.motor_dec_status['POSITION_SW'], time_machine = self.time_speed*int(self.tracking), speed_mode = self.speed_mode, dome_mode = int(self.dome_auto))
 
@@ -183,36 +124,36 @@ class SolarLab(AromNode):
                     print req
 
                     if 'RA_M1' == req:
-                        print "RA - dolu ON"
+                        print "RA - dolu ON", self.ra_range[1]
                         #self.motor_ra.Run(0, 100*self.speed_mode)
                         self.motor_ra.GoToDir(self.ra_range[1], direction = 1)
 
                     elif 'RA_P1' == req:
-                        print "RA - nahoru ON"
+                        print "RA - nahoru ON", self.ra_range[0]
                         #self.motor_ra.Run(1, 100*self.speed_mode)
                         self.motor_ra.GoToDir(self.ra_range[0], direction = 0)
 
                     elif 'RA_center1' == req:
                         print "RA - center"
-                        self.motor_ra.GoToDir(500)
+                        self.motor_ra.GoTo(self.conf['ra']['home'])
 
                     elif 'RA_M0' == req or 'RA_P0' == req:
                         print "RA - OFF"
                         self.motor_ra.Float()
 
                     elif 'DEC_M1' == req:
-                        print "DEC - dolu ON"
+                        print "DEC - dolu ON", self.dec_range[1]
                         self.motor_dec.GoToDir(self.dec_range[1], direction = 1)
                         #self.motor_dec.Run(0, 100*self.speed_mode)
 
                     elif 'DEC_P1' == req:
-                        print "DEC - nahoru ON"
+                        print "DEC - nahoru ON", self.dec_range[0]
                         #self.motor_dec.Run(1, 100*self.speed_mode)
                         self.motor_dec.GoToDir(self.dec_range[0], direction = 0)
 
                     elif 'DEC_center1' == req:
                         print "DEC - center"
-                        self.motor_dec.GoToDir(350000)
+                        self.motor_dec.GoTo(self.conf['dec']['home'])
 
                     elif 'DEC_M0' == req or 'DEC_P0' == req:
                         print "DEC - OFF"
@@ -221,18 +162,18 @@ class SolarLab(AromNode):
 
                     elif 'speed_11' == req:
                         self.speed_mode = 1
-                        self.motor_ra.MaxSpeed(100)
-                        self.motor_dec.MaxSpeed(100)
+                        self.motor_ra.MaxSpeed(self.conf['ra']['speed_1'])
+                        self.motor_dec.MaxSpeed(self.conf['dec']['speed_1'])
 
                     elif 'speed_21' == req:
                         self.speed_mode = 2
-                        self.motor_ra.MaxSpeed(500)
-                        self.motor_dec.MaxSpeed(500)
+                        self.motor_ra.MaxSpeed(self.conf['ra']['speed_2'])
+                        self.motor_dec.MaxSpeed(self.conf['dec']['speed_2'])
 
                     elif 'speed_31' == req:
                         self.speed_mode = 3
-                        self.motor_ra.MaxSpeed(800)
-                        self.motor_dec.MaxSpeed(800)
+                        self.motor_ra.MaxSpeed(self.conf['ra']['speed_3'])
+                        self.motor_dec.MaxSpeed(self.conf['dec']['speed_3'])
 
 
                     elif 'dome_a1' == req and self.motor_dec_status['POSITION'] < 10000:
@@ -251,6 +192,14 @@ class SolarLab(AromNode):
                         print 'dome ctrl - auto'
                         self.dome_auto = not self.dome_auto
 
+                    elif 'mount_init1' == req:
+                        print "Inicializace montaze - automaticke vysteredeni"
+                        self.calibration()
+
+                    elif 'mount_center1' == req:
+                        "nastaveni motoru na stred"
+                        self.motor_ra.setPosition((self.ra_range[1])/2)
+                        self.motor_dec.setPosition((self.dec_range[1])/2)
 
                     elif 'tracking_toggle0' == req:
                         self.tracking = not self.tracking
@@ -268,8 +217,6 @@ class SolarLab(AromNode):
                     self.pymlab(device="gpio_dome", method="set_ports", parameters=str(dict(port0 = 0, port1 = 0)))
                     self.dome_move_last = time.time()
 
-
-                        
             except Exception, e:
                 print "err1>", repr(e)
 
@@ -277,36 +224,144 @@ class SolarLab(AromNode):
         self.motor_dec.Float()
         self.motor_time.Float()
 
-    def ostreni_set(self, data):
-        print "ostreni", data
-        rospy.loginfo(data.data)
-        poloha = int(float(data.data))
 
-        if poloha > 100: poloha = 100
-        elif poloha < 0: poloha = 0
+    def reinitMotors(self):
+        self.motor_ra = axis.axis(SPI = self.pymlab, SPI_CS = 0b0001, Direction = True, StepsPerUnit = 1, protocol = 'arom', arom_spi_name = 'mount_ra')
+        self.motor_ra.Setup(
+                       MAX_SPEED = 500,
+                       KVAL_ACC=0.2,
+                       KVAL_RUN=0.2,
+                       KVAL_DEC=0.2,
+                       ACC = 100,
+                       DEC = 1000,
+                       FS_SPD=3000,
+                       STEP_MODE=None)
 
-        self.ostreni_request = int(poloha)
-        self.ostreni_zmena = True
+        self.motor_ra.Float()
+        self.motor_ra.MaxSpeed(self.conf['ra']['speed_1'])
+        self.motor_ra.SetSwRange(self.ra_range[0], self.ra_range[1])
 
-    def iris_set(self, data):
-        print "iris", data
-        rospy.loginfo(data.data)
-        poloha = int(float(data.data))
+        #print "MIKROKROKOVANI!!"
+        #print self.motor_ra.getParam(0x16)
 
-        if poloha > 100: poloha = 100
-        elif poloha < 0: poloha = 0
+        self.motor_dec = axis.axis(SPI = self.pymlab, SPI_CS = 0b0001, Direction = True, StepsPerUnit = 1, protocol = 'arom', arom_spi_name = 'mount_dec')  
+        self.motor_dec.Setup(
+                       MAX_SPEED = 500,
+                       KVAL_ACC=0.2,
+                       KVAL_RUN=0.2,
+                       KVAL_DEC=0.2,
+                       ACC = 100,
+                       DEC = 1000,
+                       FS_SPD=3000,
+                       STEP_MODE=None)
 
-        self.iris_request = int(poloha)
-        self.iris_zmena = True
 
-    def motor_calibrate():
-        pass
+        self.motor_dec.Float()
+        self.motor_dec.MaxSpeed(self.conf['dec']['speed_1'])
+        self.motor_dec.SetSwRange(self.dec_range[0], self.dec_range[1])
+
+        self.motor_time = axis.axis(SPI = self.pymlab, SPI_CS = 0b0001, Direction = True, StepsPerUnit = 1, protocol = 'arom', arom_spi_name = 'mount_time')  
+        time.sleep(0.2)
+        self.motor_time.Setup(
+                       MAX_SPEED = 500,
+                       KVAL_ACC=0.2,
+                       KVAL_RUN=0.2,
+                       KVAL_DEC=0.2,
+                       ACC = 100,
+                       DEC = 100,
+                       FS_SPD=3000,
+                       STEP_MODE=None)
+        self.motor_time.Float()
+        self.motor_time.MaxSpeed(self.conf['time']['speed_solar'])
+
+        self.motor_ra.Float()
+        self.motor_dec.Float()
+
+
+        time.sleep(0.2)
+        self.motor_ra.setStepMode(axis.axis.STEP_MODE_1_2)
+        self.motor_dec.setStepMode(axis.axis.STEP_MODE_1_2)
+
+        time.sleep(0.2)
+        self.motor_ra_status = self.motor_ra.getStatus()
+        self.motor_dec_status= self.motor_dec.getStatus()
+        
+        time.sleep(0.2)
+        self.motor_ra.setPosition(self.conf['ra']['last_pos'])
+        self.motor_dec.setPosition(self.conf['dec']['last_pos'])
+
+
+    def calibration(self):
+
+        self.motor_ra_status = self.motor_ra.getStatus()
+        self.motor_dec_status = self.motor_dec.getStatus()
+        self.motor_time_status = self.motor_time.getStatus()
+
+        if (not self.motor_ra_status['SW_EVN']) & (not self.motor_dec_status['SW_EVN']):
+            ##
+            ## prejezd na prvni koncak
+            ##
+            self.motor_dec.Move(self.dec_range[1]*3)
+            self.motor_ra.Move(self.ra_range[1]*3)
+
+            # pohyb prvni
+            while self.motor_ra.IsBusy() or self.motor_dec.IsBusy():
+                print "cekam"
+                time.sleep(0.7)
+                self.motor_ra_status = self.motor_ra.getStatus()
+                self.motor_dec_status = self.motor_dec.getStatus()
+                self.motor_time_status = self.motor_time.getStatus()
+
+                self.pub_motor_ra.publish(json.dumps(self.motor_ra_status, ensure_ascii=False))
+                self.pub_motor_dec.publish(json.dumps(self.motor_dec_status, ensure_ascii=False))
+                self.pub_motor_time.publish(json.dumps(self.motor_time_status, ensure_ascii=False))
+
+            #self.motor_dec.clearStatus()
+            #self.motor_ra.clearStatus()
+
+            self.motor_ra.ResetPos()
+            self.motor_dec.ResetPos()
+
+            print "MIKROKROKOVANI!!"
+            print self.motor_ra.getParam(0x16)
+
+            print "prejezd do vychozi polohy"
+            self.motor_ra.GoToDir((self.ra_range[1])/2)
+            self.motor_dec.GoToDir((self.dec_range[1])/2)
+
+            while self.motor_ra.IsBusy() or self.motor_dec.IsBusy():
+                time.sleep(0.5)
+                self.motor_ra_status = self.motor_ra.getStatus()
+                self.motor_dec_status = self.motor_dec.getStatus()
+                self.motor_time_status = self.motor_time.getStatus()
+
+                
+                self.pub_motor_ra.publish(json.dumps(self.motor_ra_status, ensure_ascii=False))
+                self.pub_motor_dec.publish(json.dumps(self.motor_dec_status, ensure_ascii=False))
+                self.pub_motor_time.publish(json.dumps(self.motor_time_status, ensure_ascii=False))
+            print "jsem uprostred"
+            self.motor_ra.Float()
+            self.motor_dec.Float()
+            self.save_config()
+
+        else:
+            print "nektery z motoru je na dorazu..."
+
+    def save_config(self, update_position = True, read=False):
+        if update_position:
+            self.conf['ra']['last_pos'] = self.motor_ra_status['POSITION']
+            self.conf['ra']['pos_update'] = self.motor_ra_status['DATETIME']
+            self.conf['dec']['last_pos']= self.motor_dec_status['POSITION']
+            self.conf['dec']['pos_update']= self.motor_dec_status['DATETIME']
+
+        with open(self.config_file, 'w') as outfile:
+            json.dump(self.conf, outfile, indent=4)
 
     def ui_action(self, data):
         print data.data
         req = str(data.data)
 
-        if req in ['RA_M0', 'RA_M1', 'DEC_M0', 'DEC_M1', 'RA_P0', 'RA_P1', 'DEC_P0', 'DEC_P1', 'tracking_toggle0', 'dome_a0', 'dome_a1', 'dome_b0', 'dome_b1', 'dome_toggle0', 'speed_11', 'speed_21', 'speed_31', 'RA_center1', 'DEC_center1']:
+        if req in ['RA_M0', 'RA_M1', 'DEC_M0', 'DEC_M1', 'RA_P0', 'RA_P1', 'DEC_P0', 'DEC_P1', 'tracking_toggle0', 'dome_a0', 'dome_a1', 'dome_b0', 'dome_b1', 'dome_toggle0', 'speed_11', 'speed_21', 'speed_31', 'RA_center1', 'DEC_center1', 'mount_init1', 'mount_center1']:
             self.operation.append(req)
 
         else:
