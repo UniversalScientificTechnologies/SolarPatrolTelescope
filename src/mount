@@ -46,6 +46,8 @@ class SolarLab(AromNode):
             self.conf = json.load(json_data)
 
         print self.conf
+        self.ra_range = self.conf['ra']['range']
+        self.dec_range = self.conf['dec']['range']
 
 
         self.pub_motor_ra = rospy.Publisher(node_name+"/motor_ra", std_msgs.msg.String, queue_size=1)
@@ -69,22 +71,12 @@ class SolarLab(AromNode):
 
         self.reinitMotors()
 
-        self.motor_ra.GoToDir(self.conf['ra']['home'])
-        self.motor_dec.GoToDir(self.conf['dec']['home'])
-        #while self.motor_ra.IsBusy() or self.motor_dec.IsBusy():
-        #    time.sleep(0.7)
-        ##    self.motor_ra_status = self.motor_ra.getStatus()
-         #   self.motor_dec_status = self.motor_dec.getStatus()
-        #    self.motor_time_status = self.motor_time.getStatus()
-
-            
-        #    self.pub_motor_ra.publish(json.dumps(self.motor_ra_status, ensure_ascii=False))
-        #    self.pub_motor_dec.publish(json.dumps(self.motor_dec_status, ensure_ascii=False))
-        #    self.pub_motor_time.publish(json.dumps(self.motor_time_status, ensure_ascii=False))
-
-        #print "jsem uprostred"
-        #self.motor_ra.Float()
-        #self.motor_dec.Float()
+        #self.motor_ra.GoToDir(self.conf['ra']['home'])
+        #self.motor_dec.GoToDir(self.conf['dec']['home'])
+###
+###
+###        
+        self.calibration()
 
 
         print "nastavit konfiguraci pro gpio"
@@ -176,13 +168,13 @@ class SolarLab(AromNode):
                         self.motor_dec.MaxSpeed(self.conf['dec']['speed_3'])
 
 
-                    elif 'dome_a1' == req and self.motor_dec_status['POSITION'] < 10000:
+                    elif 'dome_a1' == req:
                         print 'dome ctrl A'
-                        self.pymlab(device="gpio_dome", method="set_ports", parameters=str(dict(port0 = 1, port1 = 0)))
+                        self.pymlab(device="gpio_dome", method="set_ports", parameters=str(dict(port0 = 0b1000, port1 = 0)))
 
                     elif 'dome_b1' == req:
                         print 'dome ctrl B'
-                        self.pymlab(device="gpio_dome", method="set_ports", parameters=str(dict(port0 = 2, port1 = 0)))
+                        self.pymlab(device="gpio_dome", method="set_ports", parameters=str(dict(port0 = 0b100, port1 = 0)))
 
                     elif 'dome_a0' == req or 'dome_b0' == req:
                         print 'dome ctrl - stop'
@@ -205,7 +197,7 @@ class SolarLab(AromNode):
                         self.tracking = not self.tracking
                         if self.tracking:
                             print "tracking ON"
-                            self.motor_time.Run(1, 10)
+                            self.motor_time.Run(1, self.conf['time']['speed_solar'])
                         else:
                             print "tracking OFF"
                             self.motor_time.Float()
@@ -235,7 +227,7 @@ class SolarLab(AromNode):
                        ACC = 100,
                        DEC = 1000,
                        FS_SPD=3000,
-                       STEP_MODE=None)
+                       STEP_MODE=axis.axis.STEP_MODE_FULL)
 
         self.motor_ra.Float()
         self.motor_ra.MaxSpeed(self.conf['ra']['speed_1'])
@@ -253,7 +245,7 @@ class SolarLab(AromNode):
                        ACC = 100,
                        DEC = 1000,
                        FS_SPD=3000,
-                       STEP_MODE=None)
+                       STEP_MODE=axis.axis.STEP_MODE_FULL)
 
 
         self.motor_dec.Float()
@@ -263,24 +255,24 @@ class SolarLab(AromNode):
         self.motor_time = axis.axis(SPI = self.pymlab, SPI_CS = 0b0001, Direction = True, StepsPerUnit = 1, protocol = 'arom', arom_spi_name = 'mount_time')  
         time.sleep(0.2)
         self.motor_time.Setup(
-                       MAX_SPEED = 500,
-                       KVAL_ACC=0.2,
-                       KVAL_RUN=0.2,
-                       KVAL_DEC=0.2,
-                       ACC = 100,
+                       MAX_SPEED = 300,
+                       KVAL_ACC=0.12,
+                       KVAL_RUN=0.12,
+                       KVAL_DEC=0.12,
+                       ACC = 50,
                        DEC = 100,
                        FS_SPD=3000,
-                       STEP_MODE=None)
+                       STEP_MODE= axis.axis.STEP_MODE_1_128)
         self.motor_time.Float()
-        self.motor_time.MaxSpeed(self.conf['time']['speed_solar'])
+        #self.motor_time.MaxSpeed(self.conf['time']['speed_solar'])
 
         self.motor_ra.Float()
         self.motor_dec.Float()
 
 
         time.sleep(0.2)
-        self.motor_ra.setStepMode(axis.axis.STEP_MODE_1_2)
-        self.motor_dec.setStepMode(axis.axis.STEP_MODE_1_2)
+        self.motor_ra.setStepMode(axis.axis.STEP_MODE_FULL)
+        self.motor_dec.setStepMode(axis.axis.STEP_MODE_FULL)
 
         time.sleep(0.2)
         self.motor_ra_status = self.motor_ra.getStatus()
