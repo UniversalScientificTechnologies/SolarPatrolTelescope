@@ -3,7 +3,7 @@
     <div class="card-header primary-color white-text">Mount control</div>
     <div class="card-block" style="padding:0pt;">
 <div class="row" style="margin:0pt;" >
-  <div class="col-xs-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+  <div class="col-xs-12 col-sm-12 col-md-12 col-lg-6 col-xl-6" style="display: none;">
 
 
 
@@ -102,9 +102,9 @@
           <td><button onmousedown="sendKey('speed_31')" class="btn btn-secondary" type="button" id="btn_spd3">Speed 3</button></td>
         </tr>
         <tr>
-          <td><i onmousedown="sendKey('RA_P1')" onmouseup="sendKey('RA_P0')" class="fa fa-arrow-circle-o-left fa-3x" aria-hidden="true"></i></td>
+          <td><i onmousedown="sendKey('RA_M1')" onmouseup="sendKey('RA_M0')" class="fa fa-arrow-circle-o-left fa-3x" aria-hidden="true"></i></td>
           <td></td>
-          <td><i onmousedown="sendKey('RA_M1')" onmouseup="sendKey('RA_M0')" class="fa fa-arrow-circle-o-right fa-3x" aria-hidden="true"></i></td>
+          <td><i onmousedown="sendKey('RA_P1')" onmouseup="sendKey('RA_P0')" class="fa fa-arrow-circle-o-right fa-3x" aria-hidden="true"></i></td>
           <td></td>
           <td><button onmousedown="sendKey('speed_21')" class="btn btn-secondary" type="button" id="btn_spd2">Speed 2</button></td>
         </tr>
@@ -130,6 +130,14 @@
           <button class="btn btn-secondary btn_time" onmousedown="sendKey('tracking_')" id="btn_time2" type="button" style="padding: 0.2em 0.3em;">+2</button> -->
     </div>
   </div>
+
+  <label for="" style="margin:0pt;">Dome movements</label>
+  <div class="form-group" style="margin-bottom:0.3em;">
+    <div class="btn-group" role="group" style="padding: 0.1em 0.2em; margin-left: auto; margin-right: auto;">
+          <button class="btn btn-secondary" onmousedown="sendKey('dome_a1')" onmouseup="sendKey('dome_a0')" type="button" style="padding: 0.2em 2em;"> << </button>
+          <button class="btn btn-secondary" onmousedown="sendKey('dome_b1')" onmouseup="sendKey('dome_b0')" type="button" style="padding: 0.2em 2em;"> >> </button>
+    </div>
+  </div>
 </form>
 <form class="form-inline" role="form">
 
@@ -137,8 +145,8 @@
   <div class="form-group" style="margin-bottom:0.3em;">
       <div class="btn-group" role="group" style="padding: 0.1em 0.2em; margin-left: auto; margin-right: auto;">
           <button class="btn btn-secondary" onmousedown="sendKey('dome_toggle0')" id="btn_dome_mode" type="button" style="padding: 0.2em 0.3em;">DOME</button>
-          <input class="form-control" type="number" name="period" id="period" value="5" style="padding: 0.2em 0.3em; width: 5em;">
-          <input class="form-control" type="number" name="duration" id="duration" value="1" style="padding: 0.2em 0.3em; width: 5em;">
+          <input class="form-control" type="number" name="period" id="period" style="padding: 0.2em 0.3em; width: 5em;">
+          <input class="form-control" type="number" name="duration" id="duration" style="padding: 0.2em 0.3em; width: 5em;">
           <button class="btn btn-secondary" onmousedown="update_dome_movement()" id="btn_time0" type="button" style="padding: 0.2em 0.3em;">update</button>
       </div>
   </div>
@@ -184,7 +192,7 @@ var mount_status = new ROSLIB.Topic({
 });
 
 mount_status.subscribe(function(msg) {
-    console.log("r, dec", msg.ra, msg.dec)
+    //console.log("r, dec", msg.ra, msg.dec)
 
     var svg_ra = 50+ (msg.ra-50)*4
     var svg_dec = 50+ (msg.dec-50)*4
@@ -213,7 +221,7 @@ mount_status.subscribe(function(msg) {
     default:   
     }
 
-    console.log(msg.dome_mode);
+    //console.log(msg.dome_mode);
     switch(msg.dome_mode) {
     case 0:
         //console.log('nula');
@@ -261,6 +269,19 @@ mount_status.subscribe(function(msg) {
     }
 });
 
+
+var dome_status = new ROSLIB.Topic({
+    ros : ros,
+    name : '{{FeatureParams['node_name']}}/dome_times',
+    messageType : 'std_msgs/String'
+});
+
+dome_status.subscribe(function(msg){
+    console.log(msg.data.split(';'));
+    $("#period").val(msg.data.split(';')[0]);
+    $("#duration").val(msg.data.split(';')[1]);
+
+});
 
     
 var KeyboardSim = new ROSLIB.Topic({

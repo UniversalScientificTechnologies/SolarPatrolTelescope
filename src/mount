@@ -50,9 +50,17 @@ class SolarLab(AromNode):
         self.dec_range = self.conf['dec']['range']
 
 
+        print "nastavit konfiguraci pro gpio"
+        self.dome_auto = False
+        self.dome_move_last = time.time()
+        self.dome_move_period = self.conf['dome']['sleep']
+        self.dome_move_time = self.conf['dome']['length']
+
+
         self.pub_motor_ra = rospy.Publisher(node_name+"/motor_ra", std_msgs.msg.String, queue_size=1)
         self.pub_motor_dec = rospy.Publisher(node_name+"/motor_dec", std_msgs.msg.String, queue_size=1)
         self.pub_motor_time = rospy.Publisher(node_name+"/motor_time", std_msgs.msg.String, queue_size=1)
+        self.pub_dome = rospy.Publisher(node_name+"/dome_times", std_msgs.msg.String, queue_size=1, latch=True)
         self.status = rospy.Publisher(node_name+"/status", solar_patrol_telescope.msg.PatrolaMountStatus, queue_size=5, latch=True)
         #self.pub_ostreni_pos = rospy.Publisher(node_name+"/ostreni/position", std_msgs.msg.String, queue_size=1, latch = True)
         #self.pub_iris_pos = rospy.Publisher(node_name+"/iris/position", std_msgs.msg.String, queue_size=1, latch = True)
@@ -79,11 +87,7 @@ class SolarLab(AromNode):
         self.calibration()
 
 
-        print "nastavit konfiguraci pro gpio"
-        self.dome_auto = False
-        self.dome_move_last = time.time()
-        self.dome_move_period = 5
-        self.dome_move_time = 1
+        self.pub_dome.publish("%f;%f" %(self.dome_move_period, self.dome_move_time))
         self.pymlab(device="gpio_dome", method="config_ports", parameters=str(dict(port0 = 0x00, port1 = 0x00)))
         self.pymlab(device="gpio_dome", method="set_ports", parameters=str(dict(port0 = 0x00, port1 = 0x00)))
 
@@ -169,12 +173,12 @@ class SolarLab(AromNode):
 
 
                     elif 'dome_a1' == req:
-                        print 'dome ctrl A'
-                        self.pymlab(device="gpio_dome", method="set_ports", parameters=str(dict(port0 = 0b1000, port1 = 0)))
+                        print 'dome ctrl A smer: <<'
+                        self.pymlab(device="gpio_dome", method="set_ports", parameters=str(dict(port0 = 0b100, port1 = 0)))
 
                     elif 'dome_b1' == req:
-                        print 'dome ctrl B'
-                        self.pymlab(device="gpio_dome", method="set_ports", parameters=str(dict(port0 = 0b100, port1 = 0)))
+                        print 'dome ctrl B smer: >>'
+                        self.pymlab(device="gpio_dome", method="set_ports", parameters=str(dict(port0 = 0b1000, port1 = 0)))
 
                     elif 'dome_a0' == req or 'dome_b0' == req:
                         print 'dome ctrl - stop'
@@ -204,7 +208,7 @@ class SolarLab(AromNode):
 
                 if self.dome_auto and (self.dome_move_last + self.dome_move_period) < time.time():
                     print "DOME AUTO MOVE"
-                    self.pymlab(device="gpio_dome", method="set_ports", parameters=str(dict(port0 = 2, port1 = 0)))
+                    self.pymlab(device="gpio_dome", method="set_ports", parameters=str(dict(port0 = 0b1000, port1 = 0)))
                     time.sleep(self.dome_move_time)
                     self.pymlab(device="gpio_dome", method="set_ports", parameters=str(dict(port0 = 0, port1 = 0)))
                     self.dome_move_last = time.time()
@@ -345,6 +349,8 @@ class SolarLab(AromNode):
             self.conf['ra']['pos_update'] = self.motor_ra_status['DATETIME']
             self.conf['dec']['last_pos']= self.motor_dec_status['POSITION']
             self.conf['dec']['pos_update']= self.motor_dec_status['DATETIME']
+        self.conf['dome']['sleep'] = self.dome_move_period
+        self.conf['dome']['length'] = self.dome_move_time
 
         with open(self.config_file, 'w') as outfile:
             json.dump(self.conf, outfile, indent=4)
@@ -361,8 +367,12 @@ class SolarLab(AromNode):
 
     def dome_update(self, data):
         print data
-        self.dome_move_period  =data.dome_period
+        self.dome_move_period = data.dome_period
         self.dome_move_time = data.dome_duration
+        self.pub_dome.publish("%f;%f" %(self.dome_move_period, self.dome_move_time))
+        self.save_config(update_position=False)
+
+
 
 if __name__ == '__main__':
     time.sleep(1)
