@@ -1,13 +1,14 @@
 {
     "time": {
-        "speed_solar": -33.34
+        "speed_solar": -33.34, 
+        "speed_night": -40.0
     }, 
     "dec": {
-        "last_pos": 30282, 
+        "last_pos": 30000, 
         "speed_3": 800, 
         "speed_2": 700, 
         "speed_1": 600, 
-        "pos_update": 1521283946.850278, 
+        "pos_update": 1521287182.386579, 
         "range": [
             200, 
             60000
@@ -19,11 +20,11 @@
         "sleep": 895.0
     }, 
     "ra": {
-        "last_pos": 30000, 
+        "last_pos": 2884, 
         "speed_3": 800, 
         "speed_2": 700, 
         "speed_1": 600, 
-        "pos_update": 1521283946.655062, 
+        "pos_update": 1521287182.204987, 
         "range": [
             200, 
             60000

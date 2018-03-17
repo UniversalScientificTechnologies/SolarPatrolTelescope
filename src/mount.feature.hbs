@@ -119,17 +119,30 @@
       </table>
   </div>
 
-  <label for="" style="margin:0pt;">Time axis control</label>
-  <div class="form-group" style="margin-bottom:0.3em;">
-    <div class="btn-group" role="group" style="padding: 0.1em 0.2em; margin-left: auto; margin-right: auto;">
-          <!-- <button class="btn btn-secondary btn_time" onmousedown="sendKey('tracking_')" id="btn_time-2" type="button" style="padding: 0.2em 0.3em;">-2</button>
-          <button class="btn btn-secondary btn_time" onmousedown="sendKey('tracking_')" id="btn_time-1" type="button" style="padding: 0.2em 0.3em;">-1</button> -->
-          <button class="btn btn-secondary btn_time" onmousedown="sendKey('tracking_toggle0')" id="btn_time0" type="button" style="padding: 0.2em 0.3em;">Time ON/OFF</button>
-          <button class="btn btn-secondary" onmousedown="sendKey('mount_init1')" id="btn_init" type="button" style="padding: 0.2em 0.3em;">Calibrate mount</button>
-          <!-- <button class="btn btn-secondary btn_time" onmousedown="sendKey('tracking_')" id="btn_time1" type="button" style="padding: 0.2em 0.3em;">+1</button>
-          <button class="btn btn-secondary btn_time" onmousedown="sendKey('tracking_')" id="btn_time2" type="button" style="padding: 0.2em 0.3em;">+2</button> -->
+    <label for="" style="margin:0pt;">Time axis control</label>
+    <div class="form-group" style="margin-bottom:0.3em;">
+      <div class="btn-group" role="group" style="padding: 0.1em 0.2em; margin-left: auto; margin-right: auto;">
+            <!-- <button class="btn btn-secondary btn_time" onmousedown="sendKey('tracking_')" id="btn_time-2" type="button" style="padding: 0.2em 0.3em;">-2</button>
+            <button class="btn btn-secondary btn_time" onmousedown="sendKey('tracking_')" id="btn_time-1" type="button" style="padding: 0.2em 0.3em;">-1</button> -->
+            <button class="btn btn-secondary btn_time" onmousedown="sendKey('tracking_toggle0')" id="btn_time0" type="button" style="padding: 0.2em 0.3em;">Time ON/OFF</button>
+            <button class="btn btn-secondary" onmousedown="sendKey('mount_init1')" id="btn_init" type="button" style="padding: 0.2em 0.3em;">Calibrate mount</button>
+            <!-- <button class="btn btn-secondary btn_time" onmousedown="sendKey('tracking_')" id="btn_time1" type="button" style="padding: 0.2em 0.3em;">+1</button>
+            <button class="btn btn-secondary btn_time" onmousedown="sendKey('tracking_')" id="btn_time2" type="button" style="padding: 0.2em 0.3em;">+2</button> -->
+      </div>
     </div>
-  </div>
+
+
+      <label for="" style="margin:0pt;">Speed select</label>
+      <div class="form-group" style="margin-bottom:0.3em;">
+        <div class="btn-group" role="group" style="padding: 0.1em 0.2em; margin-left: auto; margin-right: auto;">
+              <!-- <button class="btn btn-secondary btn_time" onmousedown="sendKey('tracking_')" id="btn_time-2" type="button" style="padding: 0.2em 0.3em;">-2</button>
+              <button class="btn btn-secondary btn_time" onmousedown="sendKey('tracking_')" id="btn_time-1" type="button" style="padding: 0.2em 0.3em;">-1</button> -->
+              <button class="btn btn-secondary btn_track_mode" onmousedown="sendKey('tracking_solar')" id="btn_tspd0" type="button" style="padding: 0.2em 0.3em;">Sluneční rychlost</button>
+              <button class="btn btn-secondary btn_track_mode" onmousedown="sendKey('tracking_night')" id="btn_tspd1" type="button" style="padding: 0.2em 0.3em;">Hvězdná rychlost</button>
+              <!-- <button class="btn btn-secondary btn_time" onmousedown="sendKey('tracking_')" id="btn_time1" type="button" style="padding: 0.2em 0.3em;">+1</button>
+              <button class="btn btn-secondary btn_time" onmousedown="sendKey('tracking_')" id="btn_time2" type="button" style="padding: 0.2em 0.3em;">+2</button> -->
+        </div>
+      </div>
 
   <label for="" style="margin:0pt;">Dome movements</label>
   <div class="form-group" style="margin-bottom:0.3em;">
@@ -183,7 +196,7 @@ function update_dome_movement(){
   console.log(msg, UpdateDome);
   UpdateDome.publish(msg);
 }
- 
+
 
 var mount_status = new ROSLIB.Topic({
     ros : ros,
@@ -201,6 +214,7 @@ mount_status.subscribe(function(msg) {
     $("#dec").val(msg.dec);
     $("#svg_pointer").attr("transform", "translate("+svg_ra+","+svg_dec+")");
 
+    console.log(msg);
 
     switch(msg.speed_mode) {
     case 1:
@@ -218,7 +232,7 @@ mount_status.subscribe(function(msg) {
         $("#btn_spd1").removeClass('btn-success');
         $("#btn_spd2").removeClass('btn-success');
         break;
-    default:   
+    default:
     }
 
     //console.log(msg.dome_mode);
@@ -233,8 +247,8 @@ mount_status.subscribe(function(msg) {
         $("#btn_dome_mode").removeClass('btn-danger');
         $("#btn_dome_mode").addClass('btn-success');
         break;
-    
-    default:   
+
+    default:
     }
 
 
@@ -265,7 +279,21 @@ mount_status.subscribe(function(msg) {
         $(".btn_time").removeClass('btn-danger');
         $("#btn_time-2").addClass('btn-success');
         break;
-    default:   
+    default:
+    }
+
+    switch(msg.time_mode) {
+    case 1:
+        $(".btn_track_mode").removeClass('btn-success');
+        $(".btn_track_mode").removeClass('btn-danger');
+        $("#btn_tspd0").addClass('btn-success');
+        break;
+    case 2:
+        $(".btn_track_mode").removeClass('btn-success');
+        $(".btn_track_mode").removeClass('btn-danger');
+        $("#btn_tspd1").addClass('btn-success');
+        break;
+    default:
     }
 });
 
@@ -283,7 +311,7 @@ dome_status.subscribe(function(msg){
 
 });
 
-    
+
 var KeyboardSim = new ROSLIB.Topic({
     ros : ros,
     name : '/ui/keyboard/out',

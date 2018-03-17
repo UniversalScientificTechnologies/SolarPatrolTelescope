@@ -25,6 +25,7 @@ class SolarLab(AromNode):
 
         self.speed_mode = 1
         self.time_speed = 1
+        self.time_mode = 1 # ktery cas - slunecni, hvezdy
         self.tracking = False
         self.operation = []
 
@@ -74,16 +75,10 @@ class SolarLab(AromNode):
         self.set_feature('hbstep_status__0',  {'id': 'motor_ra', 'name': 'Motor ra', 'node_name': node_name, 'toppic': node_name+'/motor_ra'})
         self.set_feature('hbstep_status__1',  {'id': 'motor_dec', 'name': 'Motor dec', 'node_name': node_name, 'toppic': node_name+'/motor_dec'})
         self.set_feature('hbstep_status__2',  {'id': 'motor_time', 'name': 'Motor time', 'node_name': node_name, 'toppic': node_name+'/motor_time'})
-        
+
         #rospy.Timer(rospy.Duration(1), self.get_status, oneshot=False)
 
         self.reinitMotors()
-
-        #self.motor_ra.GoToDir(self.conf['ra']['home'])
-        #self.motor_dec.GoToDir(self.conf['dec']['home'])
-###
-###
-###        
         self.calibration()
 
 
@@ -105,15 +100,14 @@ class SolarLab(AromNode):
                     self.motor_time_status = self.motor_time.getStatus()
 
                     #print self.motor_ra_status
-                    
+
                     self.pub_motor_ra.publish(json.dumps(self.motor_ra_status, ensure_ascii=False))
                     self.pub_motor_dec.publish(json.dumps(self.motor_dec_status, ensure_ascii=False))
                     self.pub_motor_time.publish(json.dumps(self.motor_time_status, ensure_ascii=False))
 
                     self.save_config()
 
-
-                self.status.publish(ra = self.motor_ra_status['POSITION_SW'], dec=self.motor_dec_status['POSITION_SW'], time_machine = self.time_speed*int(self.tracking), speed_mode = self.speed_mode, dome_mode = int(self.dome_auto))
+                self.status.publish(ra = self.motor_ra_status['POSITION_SW'], dec=self.motor_dec_status['POSITION_SW'], time_machine = self.time_speed*int(self.tracking), speed_mode = self.speed_mode, dome_mode = int(self.dome_auto), time_mode = int(self.time_mode))
 
                 if len(self.operation)>0:
                     req = self.operation.pop(0)
@@ -201,10 +195,26 @@ class SolarLab(AromNode):
                         self.tracking = not self.tracking
                         if self.tracking:
                             print "tracking ON"
-                            self.motor_time.Run(1, self.conf['time']['speed_solar'])
+                            if self.time_mode == 1:
+                                self.motor_time.Run(1, self.conf['time']['speed_solar'])
+                            elif self.time_mode == 2:
+                                print(self.conf)
+                                self.motor_time.Run(1, self.conf['time']['speed_night'])
                         else:
                             print "tracking OFF"
                             self.motor_time.Float()
+
+                    elif 'tracking_solar' == req:
+                        print("TRACKING SOLAR")
+                        self.time_mode = 1
+                        self.tracking = False
+                        self.motor_time.Float()
+
+                    elif 'tracking_night' == req:
+                        print("TRACKING NIGHT")
+                        self.time_mode = 2
+                        self.tracking = False
+                        self.motor_time.Float()
 
                 if self.dome_auto and (self.dome_move_last + self.dome_move_period) < time.time():
                     print "DOME AUTO MOVE"
@@ -240,7 +250,7 @@ class SolarLab(AromNode):
         #print "MIKROKROKOVANI!!"
         #print self.motor_ra.getParam(0x16)
 
-        self.motor_dec = axis.axis(SPI = self.pymlab, SPI_CS = 0b0001, Direction = True, StepsPerUnit = 1, protocol = 'arom', arom_spi_name = 'mount_dec')  
+        self.motor_dec = axis.axis(SPI = self.pymlab, SPI_CS = 0b0001, Direction = True, StepsPerUnit = 1, protocol = 'arom', arom_spi_name = 'mount_dec')
         self.motor_dec.Setup(
                        MAX_SPEED = 500,
                        KVAL_ACC=0.2,
@@ -256,7 +266,7 @@ class SolarLab(AromNode):
         self.motor_dec.MaxSpeed(self.conf['dec']['speed_1'])
         self.motor_dec.SetSwRange(self.dec_range[0], self.dec_range[1])
 
-        self.motor_time = axis.axis(SPI = self.pymlab, SPI_CS = 0b0001, Direction = True, StepsPerUnit = 1, protocol = 'arom', arom_spi_name = 'mount_time')  
+        self.motor_time = axis.axis(SPI = self.pymlab, SPI_CS = 0b0001, Direction = True, StepsPerUnit = 1, protocol = 'arom', arom_spi_name = 'mount_time')
         time.sleep(0.2)
         self.motor_time.Setup(
                        MAX_SPEED = 300,
@@ -281,7 +291,7 @@ class SolarLab(AromNode):
         time.sleep(0.2)
         self.motor_ra_status = self.motor_ra.getStatus()
         self.motor_dec_status= self.motor_dec.getStatus()
-        
+
         time.sleep(0.2)
         self.motor_ra.setPosition(self.conf['ra']['last_pos'])
         self.motor_dec.setPosition(self.conf['dec']['last_pos'])
@@ -331,7 +341,7 @@ class SolarLab(AromNode):
                 self.motor_dec_status = self.motor_dec.getStatus()
                 self.motor_time_status = self.motor_time.getStatus()
 
-                
+
                 self.pub_motor_ra.publish(json.dumps(self.motor_ra_status, ensure_ascii=False))
                 self.pub_motor_dec.publish(json.dumps(self.motor_dec_status, ensure_ascii=False))
                 self.pub_motor_time.publish(json.dumps(self.motor_time_status, ensure_ascii=False))
@@ -359,7 +369,7 @@ class SolarLab(AromNode):
         print data.data
         req = str(data.data)
 
-        if req in ['RA_M0', 'RA_M1', 'DEC_M0', 'DEC_M1', 'RA_P0', 'RA_P1', 'DEC_P0', 'DEC_P1', 'tracking_toggle0', 'dome_a0', 'dome_a1', 'dome_b0', 'dome_b1', 'dome_toggle0', 'speed_11', 'speed_21', 'speed_31', 'RA_center1', 'DEC_center1', 'mount_init1', 'mount_center1']:
+        if req in ['RA_M0', 'RA_M1', 'DEC_M0', 'DEC_M1', 'RA_P0', 'RA_P1', 'DEC_P0', 'DEC_P1', 'tracking_toggle0', 'dome_a0', 'dome_a1', 'dome_b0', 'dome_b1', 'dome_toggle0', 'speed_11', 'speed_21', 'speed_31', 'RA_center1', 'DEC_center1', 'mount_init1', 'mount_center1', 'tracking_solar', 'tracking_night']:
             self.operation.append(req)
 
         else:
