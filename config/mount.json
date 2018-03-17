@@ -1,22 +1,13 @@
 {
-    "ra": {
-        "last_pos": 11878, 
-        "speed_3": 800, 
-        "speed_2": 700, 
-        "speed_1": 600, 
-        "pos_update": 1515236987.079868, 
-        "range": [
-            200, 
-            60000
-        ], 
-        "home": 17000
+    "time": {
+        "speed_solar": -33.34
     }, 
     "dec": {
-        "last_pos": 10006, 
+        "last_pos": 30282, 
         "speed_3": 800, 
         "speed_2": 700, 
         "speed_1": 600, 
-        "pos_update": 1515236987.252841, 
+        "pos_update": 1521283946.850278, 
         "range": [
             200, 
             60000
@@ -27,7 +18,16 @@
         "length": 2.0, 
         "sleep": 895.0
     }, 
-    "time": {
-        "speed_solar": -33.34
+    "ra": {
+        "last_pos": 30000, 
+        "speed_3": 800, 
+        "speed_2": 700, 
+        "speed_1": 600, 
+        "pos_update": 1521283946.655062, 
+        "range": [
+            200, 
+            60000
+        ], 
+        "home": 17000
     }
 }
