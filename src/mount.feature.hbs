@@ -83,11 +83,11 @@
 <form>
   <div class="form-group" style="margin-bottom:0.3em;">
     <label for="" style="margin:0pt;">RA axis</label>
-    <input type="number" class="form-control" id="ra"placeholder="RA offset range" style="padding: 0.1em 0.2em;">
+    <input type="number" class="form-control" id="ra" placeholder="RA offset range" style="padding: 0.1em 0.2em;">
   </div>
   <div class="form-group" style="margin-bottom:0.3em;">
     <label for="" style="margin:0pt;">DEC axis</label>
-    <input type="number" class="form-control" id="dec"placeholder="DEC offset range" style="padding: 0.1em 0.2em;">
+    <input type="number" class="form-control" id="dec" placeholder="DEC offset range" style="padding: 0.1em 0.2em;">
   </div>
 
 
@@ -142,6 +142,8 @@
               <!-- <button class="btn btn-secondary btn_time" onmousedown="sendKey('tracking_')" id="btn_time1" type="button" style="padding: 0.2em 0.3em;">+1</button>
               <button class="btn btn-secondary btn_time" onmousedown="sendKey('tracking_')" id="btn_time2" type="button" style="padding: 0.2em 0.3em;">+2</button> -->
         </div>
+        <!-- Button trigger modal -->
+        <button type="button" class="btn btn-secondary btn-sm" data-toggle="modal" data-target="#exampleModal">Nastaveni rychlosti</button>
       </div>
 
   <label for="" style="margin:0pt;">Dome movements</label>
@@ -173,6 +175,43 @@
 </div>
 </div>
 
+
+
+
+
+<!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Nastavení hodinového stroje</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <p>
+        Pro změnu rychlosti hodinového stroje slouží tyto dvě pole. Aktuální rychlost vyčtete při spuštěném hodinovém stroji při rozbalení záložky 'Motor time', kde je parametr "SPEED". Tato hodnota odpovídá okamžité rychlosti. Pro změnu Slunečního pohybu změňte hodnotu prvního pole a stiskněte tlačítko uložit. Po uložení je nutné vypnout a zapnou hodinový stroj pomocí tlačítka.
+      </p>
+      <div class="modal-body">
+            <div class="input-group mb-3">
+            <input type="number" min="10" max="50" step=0.01 class="form-control"  id="set_spd_day">
+            <label>Slunečí pohyb</label>
+            <div class="input-group-append">
+              <button class="btn btn-outline-secondary" type="button" onclick="SendDaySpeed()">Ulozit Sluneční rychlost</button>
+            </div>
+          </div>
+
+          <div class="input-group mb-3">
+            <input type="number" min="10" max="50" step=0.01 class="form-control" id="set_spd_night">
+            <label>Hvězdný pohyb</label>
+            <div class="input-group-append">
+              <button class="btn btn-outline-secondary" type="button" onclick="SendNightSpeed()">Ulozit hvězdnou rychlost</button>
+            </div>
+          </div>
+      </div>
+    </div>
+  </div>
+</div>
 
 
 <script type="text/javascript">
@@ -308,7 +347,6 @@ dome_status.subscribe(function(msg){
     console.log(msg.data.split(';'));
     $("#period").val(msg.data.split(';')[0]);
     $("#duration").val(msg.data.split(';')[1]);
-
 });
 
 
@@ -324,6 +362,34 @@ function sendKey(msg){
         data:  msg
     });
     KeyboardSim.publish(msg);
+}
+
+
+var pubNightSpeed = new ROSLIB.Topic({
+    ros : ros,
+    name : '/motor_time_night',
+    messageType : 'std_msgs/String'
+});
+
+function SendNightSpeed(msg){
+    console.log(msg);
+    var msg = new ROSLIB.Message({
+        data:  $('#set_spd_night').val()
+    });
+    pubNightSpeed.publish(msg);
+}
+var pubDaySpeed = new ROSLIB.Topic({
+    ros : ros,
+    name : '/motor_time_day',
+    messageType : 'std_msgs/String'
+});
+
+function SendDaySpeed(msg){
+    console.log(msg);
+    var msg = new ROSLIB.Message({
+        data:  $('#set_spd_day').val()
+    });
+    pubDaySpeed.publish(msg);
 }
 
 </script>

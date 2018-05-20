@@ -68,6 +68,8 @@ class SolarLab(AromNode):
 
 
         self.sub_iris_request = rospy.Subscriber("/ui/keyboard/out", std_msgs.msg.String, self.ui_action)
+        self.sub_motor_time_day = rospy.Subscriber("/motor_time_day", std_msgs.msg.String, self.ui_set_std_day)
+        self.sub_motor_time_night = rospy.Subscriber("/motor_time_night", std_msgs.msg.String, self.ui_set_std_night)
         self.sub_dome_request = rospy.Subscriber(node_name+'/dome/setting', solar_patrol_telescope.msg.PatrolaDomeSettings, self.dome_update)
 
 
@@ -79,7 +81,7 @@ class SolarLab(AromNode):
         #rospy.Timer(rospy.Duration(1), self.get_status, oneshot=False)
 
         self.reinitMotors()
-        self.calibration()
+        #self.calibration()
 
 
         self.pub_dome.publish("%f;%f" %(self.dome_move_period, self.dome_move_time))
@@ -374,6 +376,14 @@ class SolarLab(AromNode):
 
         else:
             print "tohle neni muj prikaz"
+
+    def ui_set_std_day(self, data):
+        print(data.data)
+        self.conf['time']['speed_solar'] = -1*float(data.data)
+
+    def ui_set_std_night(self, data):
+        print(data.data)
+        self.conf['time']['speed_night'] = -1*float(data.data)
 
     def dome_update(self, data):
         print data
