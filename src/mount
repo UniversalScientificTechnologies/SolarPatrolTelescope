@@ -81,7 +81,8 @@ class SolarLab(AromNode):
         #rospy.Timer(rospy.Duration(1), self.get_status, oneshot=False)
 
         self.reinitMotors()
-        #self.calibration()
+        # UVodni kalibrace... 
+        self.calibration()
 
 
         self.pub_dome.publish("%f;%f" %(self.dome_move_period, self.dome_move_time))
@@ -270,11 +271,14 @@ class SolarLab(AromNode):
 
         self.motor_time = axis.axis(SPI = self.pymlab, SPI_CS = 0b0001, Direction = True, StepsPerUnit = 1, protocol = 'arom', arom_spi_name = 'mount_time')
         time.sleep(0.2)
+        
+        # hodnoty do 2018/07/20: 0.12, 0.12, 0.12
+        
         self.motor_time.Setup(
                        MAX_SPEED = 300,
-                       KVAL_ACC=0.12,
-                       KVAL_RUN=0.12,
-                       KVAL_DEC=0.12,
+                       KVAL_ACC=0.15,
+                       KVAL_RUN=0.15,
+                       KVAL_DEC=0.15,
                        ACC = 50,
                        DEC = 100,
                        FS_SPD=3000,
