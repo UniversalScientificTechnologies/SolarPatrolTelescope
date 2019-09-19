@@ -45,10 +45,10 @@ class TelescopePatrolaCtrl(AromNode):
         self.sub_iris_request = rospy.Subscriber("/ui/keyboard/out", std_msgs.msg.String, self.ui_action)
         self.sub_ostreni_request = rospy.Subscriber(node_name+"/ostreni/command", std_msgs.msg.String, self.ostreni_set)
         self.ostreni_request = self.conf['focus']['home']
-        self.ostreni_zmena = False
+        self.ostreni_zmena = True
         self.sub_iris_request = rospy.Subscriber(node_name+"/iris/command", std_msgs.msg.String, self.iris_set)
         self.iris_request = self.conf['iris']['home']
-        self.iris_zmena = False
+        self.iris_zmena = True
         self.operation = []
 
         
@@ -59,9 +59,9 @@ class TelescopePatrolaCtrl(AromNode):
         print "AXIS::::", node_name[1:]
         self.motor_a = axis.axis(SPI = self.pymlab, SPI_CS = self.conf['focus']['pin'], Direction = True, StepsPerUnit = 1, protocol = 'arom', arom_spi_name = self.conf['spi'])
         self.motor_a.Setup(MAX_SPEED = self.conf['focus']['speed'],
-                       KVAL_ACC=0.4,
-                       KVAL_RUN=0.45,
-                       KVAL_DEC=0.4,
+                       KVAL_ACC=0.2,
+                       KVAL_RUN=0.25,
+                       KVAL_DEC=0.2,
                        ACC = 40,
                        DEC = 500,
                        FS_SPD=3000,
@@ -97,12 +97,11 @@ class TelescopePatrolaCtrl(AromNode):
         print self.motor_b_status
         if not self.motor_a_status['SW_F']:
             pass
-            self.motor_a.GoTo(-int(self.conf['focus']['max']*1.25))
+            self.motor_a.GoTo(-self.conf['focus']['max'])
         else:
             print("Stisknute tlacitko motoru A - ostreni")
-
         if not self.motor_b_status['SW_F']:
-            self.motor_b.GoTo(-int(self.conf['iris']['max']*1.25))
+            self.motor_b.GoTo(-self.conf['iris']['max'])
         else:
             print("Stisknute tlacitko motoru B - clona")
 
@@ -114,7 +113,7 @@ class TelescopePatrolaCtrl(AromNode):
         self.motor_b.ResetPos()
         print "prejezd do vychozi polohy"
         self.motor_b.GoTo(self.conf['iris']['home'])
-        self.motor_a.GoTo(self.conf['focus']['home'])
+        #self.motor_a.GoTo(self.conf['focus']['home'])
         while self.motor_a.IsBusy() or self.motor_b.IsBusy():
             time.sleep(0.4)
         print "jsem uprostred"
@@ -200,7 +199,7 @@ class TelescopePatrolaCtrl(AromNode):
         print "^^ ", poloha
 
         self.ostreni_request = int(poloha)
-        self.ostreni_zmena = True
+        self.ostreni_zmena = 
 
     def iris_set(self, data):
         print "iris", data

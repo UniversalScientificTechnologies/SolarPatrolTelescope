@@ -3,10 +3,10 @@
 	"focus":{
 		"pin": 2,
 		"min": 100,
-		"max": 17000,
+		"max": 18500,
 		"home": 7000,
 		"range": 35,
-		"speed": 400
+		"speed": 300
 	},
 	"iris":{
 		"pin": 1,
