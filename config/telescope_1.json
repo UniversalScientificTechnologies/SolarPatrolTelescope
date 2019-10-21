@@ -10,11 +10,12 @@
 	},
 	"iris":{
 		"pin": 1,
-		"min": 80,
+		"min": 200,
 		"max": 3000,
-		"home": 80,
+		"home": 200,
 		"range": 30,
-		"speed": 90
+		"speed": 60,
+                "speed_min": 100
 	}
 
 }

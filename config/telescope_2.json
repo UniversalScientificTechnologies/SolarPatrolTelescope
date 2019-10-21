@@ -14,7 +14,8 @@
 		"max": 3150,
 		"home": 50,
 		"range": 20,
-		"speed": 90
+		"speed": 90,
+                "speed_min": 150
 	}
 
 }

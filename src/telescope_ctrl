@@ -75,15 +75,16 @@ class TelescopePatrolaCtrl(AromNode):
 
         self.motor_b = axis.axis(SPI = self.pymlab, SPI_CS = self.conf['iris']['pin'], Direction = True, StepsPerUnit = 1, protocol = 'arom', arom_spi_name = self.conf['spi'])  
         self.motor_b.Setup(MAX_SPEED = self.conf['focus']['speed'],
-                       KVAL_ACC=0.3,
-                       KVAL_RUN=0.25,
+                       KVAL_ACC=0.35,
+                       KVAL_RUN=0.35,
                        KVAL_DEC=0.3,
-                       ACC = 50,
+                       ACC = 100,
                        DEC = 800,
                        FS_SPD=3000,
                        STEP_MODE=None)
         self.motor_b.Float()
         self.motor_b.MaxSpeed(self.conf['iris']['speed'])
+        self.motor_b.MinSpeed(self.conf['iris']['speed_min'])
         self.motor_b.SetSwRange(self.conf['iris']['min'], self.conf['iris']['max'])
 
 
@@ -112,11 +113,67 @@ class TelescopePatrolaCtrl(AromNode):
         print "resetuji pozici"
         self.motor_a.ResetPos()
         self.motor_b.ResetPos()
+
+        #print("Vypinam tlacitko")
+        #self.motor_b.setConfig(F_PWM_INT = 0b001, F_PWM_DEC = 0b110, POW_SR = 0b00, OC_SD = 0b0, RESERVED = 0b0, EN_VSCOMP =  0b1, SW_MODE = 0b1, EXT_CLK = 0b0, OSC_SEL = 0b000)
+        #self.motor_b.Float()
+
+        print("Poloha pro clonu", self.conf['iris']['min'])
         print "prejezd do vychozi polohy"
-        self.motor_b.GoTo(self.conf['iris']['home'])
+        #self.motor_b.GoTo(self.conf['iris']['min'])
+        self.motor_b.ReleaseSW()
+        while self.motor_b.IsBusy(): time.sleep(0.2)
+        self.motor_b.GoTo(self.conf['iris']['min'])
+        while self.motor_b.IsBusy(): time.sleep(0.2)
+
         self.motor_a.GoTo(self.conf['focus']['home'])
-        while self.motor_a.IsBusy() or self.motor_b.IsBusy():
-            time.sleep(0.4)
+        while self.motor_a.IsBusy(): time.sleep(0.4)
+        
+        #self.motor_b.Move(self.conf['iris']['min']*3, 1)
+        #time.sleep(0.4)
+        #self.motor_b.Float()
+        
+        print "prejezd do vychozi polohy, podruhe"
+        self.motor_b_status = self.motor_b.getStatus()
+        print "tlacitko", self.motor_b_status['SW_F']
+
+        #print("ReleaseSW")
+        #self.motor_b.ReleaseSW()
+        #while self.motor_a.IsBusy() or self.motor_b.IsBusy():
+        #    time.sleep(0.4)
+
+        self.motor_b.GoTo(self.conf['iris']['min'])
+        while self.motor_b.IsBusy(): time.sleep(0.4)
+        
+        #time.sleep(0.4)
+        #self.motor_b.Float()
+        
+
+        # self.motor_b.Move(self.conf['iris']['min']*3, 1)
+        # time.sleep(0.4)
+        # self.motor_b.Float()
+
+        # self.motor_b.Move(self.conf['iris']['min']*3, 1)
+        # time.sleep(0.4)
+        # self.motor_b.Float()
+
+        # self.motor_b.Move(self.conf['iris']['min']*3, 1)
+        # time.sleep(0.4)
+        # self.motor_b.Float()
+
+        # self.motor_b.Move(self.conf['iris']['min']*3, 1)
+        # time.sleep(0.4)
+        # self.motor_b.Float()
+        #for x in range(5):
+        #    print "iterace clony", x
+        #    self.motor_b.Float()
+        #    time.sleep(0.3)
+	    #self.motor_b.GoTo(self.conf['iris']['min']*2)
+            #self.motor_a.GoTo(self.conf['focus']['home'])
+       #     while self.motor_b.IsBusy():
+       #         time.sleep(0.3)
+       #     self.motor_b_status = self.motor_b.getStatus()
+
         print "jsem uprostred"
 
         self.motor_a.Float()
