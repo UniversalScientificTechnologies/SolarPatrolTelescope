@@ -1,6 +1,8 @@
 # SolarPatrolTelescope
 Renovation of solar telescope of the patrol service
 
+_Equipment for solar detection is in [own branch](https://github.com/UniversalScientificTechnologies/SolarPatrolTelescope/tree/ControlSystem)._
+
 
 ### I2C zařízení
 
