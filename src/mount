@@ -7,6 +7,7 @@ import std_msgs
 import axis
 import json
 import os
+import zmq
 
 import solar_patrol_telescope.msg
 from arom_helper import AromNode
@@ -29,6 +30,8 @@ class SolarLab(AromNode):
         self.tracking = False
         self.operation = []
         self.run = True
+        self.time_scale = 1
+        self.update_scaling_last = 0
 
         self.ra_range = [100, 30000]
         self.dec_range = [100, 30000]
@@ -82,10 +85,14 @@ class SolarLab(AromNode):
 
         #rospy.Timer(rospy.Duration(1), self.get_status, oneshot=False)
 
+        port = "5555"
+        context = zmq.Context()
+        self.socket = context.socket(zmq.PAIR)
+        self.socket.bind("tcp://*:%s" %(str(port)))
+
         self.reinitMotors()
         # UVodni kalibrace... 
-        self.calibration()
-
+        # self.calibration()
 
         self.pub_dome.publish("%f;%f" %(self.dome_move_period, self.dome_move_time))
         self.pymlab(device="gpio_dome", method="config_ports", parameters=str(dict(port0 = 0x00, port1 = 0x00)))
@@ -96,7 +103,6 @@ class SolarLab(AromNode):
         while not rospy.is_shutdown() and self.run:
             rate.sleep()
             try:
-
                 i += 1
                 if i > 10:
                     i = 0
@@ -113,6 +119,55 @@ class SolarLab(AromNode):
                     self.save_config()
 
                 self.status.publish(ra = self.motor_ra_status['POSITION_SW'], dec=self.motor_dec_status['POSITION_SW'], time_machine = self.time_speed*int(self.tracking), speed_mode = self.speed_mode, dome_mode = int(self.dome_auto), time_mode = int(self.time_mode))
+
+                try:
+                    msg = self.socket.recv(flags=zmq.NOBLOCK)
+                    print("OBTAINED MSG OVER ZMQ")
+                except Exception as e:
+                    # print("err zmq:", e)
+                    msg = None
+
+                if msg:
+                    if 'move;' in msg:
+                        time_val = float(msg.split(';')[1])
+                        dec = float(msg.split(';')[2])
+                        print("prikaz pro trackovani", msg, time_val, dec)
+                        self.tracking = 1+time_val
+                        self.time_scale = 1+time_val
+                        sval = abs(int(self.conf['time']['speed_solar'] * 67.106 * self.time_scale))
+                        self.motor_time.Run(1, int(time_val), speed_value = int(sval))
+                        self.update_scaling_last = time.time()
+
+                        self.motor_dec.Run(1, int(dec))
+                        print("nastaveno")
+
+                    if 'move_left' in msg:
+                        self.operation.append("RA_M1")
+                    if 'move_right' in msg:
+                        self.operation.append("RA_P1")
+                    if 'move_down' in msg:
+                        self.operation.append("DEC_M1")
+                    if 'move_up' in msg:
+                        self.operation.append("DEC_P1")
+                    if 'stop' in msg:
+                        self.motor_ra.Float()
+                        self.motor_dec.Float()
+
+                    pass
+                    # prijem zpravy o posuvu v RA
+                    # self.time_scale = 1 # urcit velikost skalovani hodinoveho stroje
+                    # self.operation.append("update_scaling")
+                    # print "ha"
+
+                if self.update_scaling_last and (self.update_scaling_last + 5) < time.time():
+                    print("dlouho neprisel zadny pozadavek.. Vypinam trackovani")
+                    self.time_scale = 1
+                    self.update_scaling_last = 0
+
+                    sval = abs(int(self.conf['time']['speed_solar'] * 67.106 * self.time_scale))
+                    self.motor_time.Run(1, self.conf['time']['speed_solar'], speed_value = sval)
+                    self.motor_dec.Float()
+
 
                 if len(self.operation)>0:
                     req = self.operation.pop(0)
@@ -196,13 +251,19 @@ class SolarLab(AromNode):
                         self.motor_ra.setPosition((self.ra_range[1])/2)
                         self.motor_dec.setPosition((self.dec_range[1])/2)
 
+                    #elif 'update_scaling' == req:
+                    #    self.tracking = 1
+                    #    sval = abs(int(self.conf['time']['speed_solar'] * 67.106 * self.time_scale))
+                    #    self.motor_time.Run(1, self.conf['time']['speed_solar'], speed_value = sval)
+                    #    self.update_scaling_last = time.time()
+
                     elif 'tracking_toggle0' == req:
                         self.tracking = not self.tracking
                         if self.tracking:
                             print "tracking ON"
                             if self.time_mode == 1:
                                 # sval = abs(int((self.conf['time']['speed_solar'] * 2.5e-7)/(2**-28)))
-                                sval = abs(int(self.conf['time']['speed_solar'] * 67.106))
+                                sval = abs(int(self.conf['time']['speed_solar'] * 67.106 * self.time_scale))
                                 print("tracking on", sval, bin(sval))
                                 self.motor_time.Run(1, self.conf['time']['speed_solar'], speed_value = sval)
                             elif self.time_mode == 2:
@@ -239,12 +300,11 @@ class SolarLab(AromNode):
             self.motor_ra.Float()
             self.motor_dec.Float()
             self.motor_time.Float()
-
         except:
-            print("Nepovedlo se zastavit vsechny motory pred vypnutim")
+           print("Nepovedlo se zastavit vsechny motory pred vypnutim")
 
-        print("Ted se zacnu vypinat")
-        os.system('poweroff') 
+       # print("Ted se zacnu vypinat")
+       # os.system('poweroff') 
 
     def reinitMotors(self):
         self.motor_ra = axis.axis(SPI = self.pymlab, SPI_CS = 0b0001, Direction = True, StepsPerUnit = 1, protocol = 'arom', arom_spi_name = 'mount_ra')
