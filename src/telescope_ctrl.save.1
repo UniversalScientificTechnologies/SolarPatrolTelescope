@@ -44,7 +44,6 @@ class TelescopePatrolaCtrl(AromNode):
 
         self.sub_iris_request = rospy.Subscriber("/ui/keyboard/out", std_msgs.msg.String, self.ui_action)
         self.sub_ostreni_request = rospy.Subscriber(node_name+"/ostreni/command", std_msgs.msg.String, self.ostreni_set)
-        self.sub_sysmsg = rospy.Subscriber('/syscmd', std_msgs.msg.String, self.sys_msg)
         self.ostreni_request = self.conf['focus']['home']
         self.ostreni_zmena = False
         self.sub_iris_request = rospy.Subscriber(node_name+"/iris/command", std_msgs.msg.String, self.iris_set)
@@ -60,10 +59,10 @@ class TelescopePatrolaCtrl(AromNode):
         print "AXIS::::", node_name[1:]
         self.motor_a = axis.axis(SPI = self.pymlab, SPI_CS = self.conf['focus']['pin'], Direction = True, StepsPerUnit = 1, protocol = 'arom', arom_spi_name = self.conf['spi'])
         self.motor_a.Setup(MAX_SPEED = self.conf['focus']['speed'],
-                       KVAL_ACC=0.6,
-                       KVAL_RUN=0.6,
-                       KVAL_DEC=0.6,
-                       ACC = 100,
+                       KVAL_ACC=0.4,
+                       KVAL_RUN=0.45,
+                       KVAL_DEC=0.4,
+                       ACC = 40,
                        DEC = 500,
                        FS_SPD=3000,
                        STEP_MODE=None)
@@ -75,10 +74,10 @@ class TelescopePatrolaCtrl(AromNode):
 
 
         self.motor_b = axis.axis(SPI = self.pymlab, SPI_CS = self.conf['iris']['pin'], Direction = True, StepsPerUnit = 1, protocol = 'arom', arom_spi_name = self.conf['spi'])  
-        self.motor_b.Setup(MAX_SPEED = self.conf['iris']['speed'],
-                       KVAL_ACC=0.5,
-                       KVAL_RUN=0.5,
-                       KVAL_DEC=0.4,
+        self.motor_b.Setup(MAX_SPEED = self.conf['focus']['speed'],
+                       KVAL_ACC=0.35,
+                       KVAL_RUN=0.35,
+                       KVAL_DEC=0.3,
                        ACC = 100,
                        DEC = 800,
                        FS_SPD=3000,
@@ -112,7 +111,7 @@ class TelescopePatrolaCtrl(AromNode):
             if self.motor_a.IsBusy():
                 print("cekam na uvolnen A - ostreni")
             if self.motor_b.IsBusy():
-                print("cekam na uvolnen b - clone")
+                print("cekam na uvolnen b - clona")
 
             time.sleep(0.4)
 
@@ -180,7 +179,7 @@ class TelescopePatrolaCtrl(AromNode):
        #         time.sleep(0.3)
        #     self.motor_b_status = self.motor_b.getStatus()
 
-        print("jsem uprostred")
+        print "jsem uprostred"
 
         self.motor_a.Float()
         self.motor_b.Float()
@@ -252,7 +251,7 @@ class TelescopePatrolaCtrl(AromNode):
         self.motor_b.Float()
 
     def ostreni_set(self, data):
-        print("ostreni", data)
+        print "ostreni", data
         rospy.loginfo(data.data)
         poloha =float(data.data)
 
@@ -260,13 +259,13 @@ class TelescopePatrolaCtrl(AromNode):
         elif poloha < 0: poloha = 0
 
         poloha = int(float(poloha)*(self.conf['focus']['max']-self.conf['focus']['min'])/100+self.conf['focus']['min'])
-        print("^^ ", poloha)
+        print "^^ ", poloha
 
         self.ostreni_request = int(poloha)
         self.ostreni_zmena = True
 
     def iris_set(self, data):
-        print("iris", data)
+        print "iris", data
         rospy.loginfo(data.data)
         poloha = float(data.data)
 
@@ -275,7 +274,7 @@ class TelescopePatrolaCtrl(AromNode):
 
         #poloha =    int(float(poloha)*(self.conf['focus']['max']-self.conf['focus']['min'])/100+self.conf['focus']['min'])
         poloha = int(float(poloha)*(self.conf['iris']['max']-self.conf['iris']['min'])/100+self.conf['iris']['min'])
-        print("^^ ", poloha)
+        print "^^ ", poloha
 
         self.iris_request = int(poloha)
         self.iris_zmena = True
@@ -283,22 +282,12 @@ class TelescopePatrolaCtrl(AromNode):
     def motor_calibrate():
         pass
 
-    def sys_msg(self, data):
-        print("sysmsg", data)
-        if data.data == 'poweroff':
-            try:
-                self.motor_b.GoTo(self.conf['iris']['min'])
-            except:
-                print("nejde zavrit clonu")
-
-
     def ui_action(self, msg):
         data = msg.data
         nn = self.node_name[1:]
         if data in [nn+'_close1', nn+'_irisM0', nn+'_irisM1', nn+'_irisP0', nn+'_irisP1', nn+'_focusM0', nn+'_focusM1', nn+'_focusP0', nn+'_focusP1']:
-            print("zprava prijata", data)
+            print "zprava prijata", data
             self.operation.append(data)
-
             #if data == nn+'_close1':
             #    self.motor_clona.GoTo(10)
 

@@ -42,7 +42,8 @@ class TelescopePatrolaCtrl(AromNode):
 
         self.sub_clona_req = rospy.Subscriber("/ui/keyboard/out", std_msgs.msg.String, self.ui_action)
         self.sub_clona_req = rospy.Subscriber("/patrola_caps/toggle", std_msgs.msg.Int8, self.ui_toggle)
-        
+        self.sub_sysmsg = rospy.Subscriber('/syscmd', std_msgs.msg.String, self.sys_msg)
+
         self.set_feature('external',  {'feature': __file__+'.feature.hbs', 'data': self.conf})
 
         self.set_cap(0, 0)
@@ -65,6 +66,7 @@ class TelescopePatrolaCtrl(AromNode):
 
 
     def set_cap(self, cap, position):
+        print("set cap:", cap, position)
         if position: value = self.conf[str(cap)]['open']
         else: value = self.conf[str(cap)]['close']
 
@@ -96,7 +98,15 @@ class TelescopePatrolaCtrl(AromNode):
     def ui_toggle(self, msg):
         print("Toggle požadavek", msg)
         self.toggle_cap(msg.data)
-    
+
+    def sys_msg(self, data):
+        print("sysmsg", data)
+
+        if data.data == 'poweroff':
+            self.set_cap(0, False)
+            self.set_cap(1, False)
+
+
 
 if __name__ == '__main__':
     time.sleep(8)

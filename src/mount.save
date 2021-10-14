@@ -85,14 +85,15 @@ class SolarLab(AromNode):
 
         #rospy.Timer(rospy.Duration(1), self.get_status, oneshot=False)
 
-        port = "5555"
+        port = "5556"
         context = zmq.Context()
-        self.socket = context.socket(zmq.PAIR)
-        self.socket.bind("tcp://*:%s" %(str(port)))
+        self.socket = context.socket(zmq.REP)
+        self.socket.bind("tcp://*:%s" % port)
 
         self.reinitMotors()
         # UVodni kalibrace... 
         self.calibration()
+
 
         self.pub_dome.publish("%f;%f" %(self.dome_move_period, self.dome_move_time))
         self.pymlab(device="gpio_dome", method="config_ports", parameters=str(dict(port0 = 0x00, port1 = 0x00)))
@@ -103,6 +104,7 @@ class SolarLab(AromNode):
         while not rospy.is_shutdown() and self.run:
             rate.sleep()
             try:
+
                 i += 1
                 if i > 10:
                     i = 0
@@ -121,53 +123,23 @@ class SolarLab(AromNode):
                 self.status.publish(ra = self.motor_ra_status['POSITION_SW'], dec=self.motor_dec_status['POSITION_SW'], time_machine = self.time_speed*int(self.tracking), speed_mode = self.speed_mode, dome_mode = int(self.dome_auto), time_mode = int(self.time_mode))
 
                 try:
-                    msg = self.socket.recv(flags=zmq.NOBLOCK)
+                    msg = socket.recv(flags=zmq.NOBLOCK)
                     print("OBTAINED MSG OVER ZMQ")
+                    print(msg)
                 except Exception as e:
-                    # print("err zmq:", e)
                     msg = None
 
                 if msg:
-                    if 'move;' in msg:
-                        time_val = float(msg.split(';')[1])
-                        dec = float(msg.split(';')[2])
-                        print("prikaz pro trackovani", msg, time_val, dec)
-                        self.tracking = 1+time_val
-                        self.time_scale = 1+time_val
-                        sval = abs(int(self.conf['time']['speed_solar'] * 67.106 * self.time_scale))
-                        self.motor_time.Run(1, int(time_val), speed_value = int(sval))
-                        self.update_scaling_last = time.time()
-
-                        self.motor_dec.Run(1, int(dec))
-                        print("nastaveno")
-
-                    if 'move_left' in msg:
-                        self.operation.append("RA_M1")
-                    if 'move_right' in msg:
-                        self.operation.append("RA_P1")
-                    if 'move_down' in msg:
-                        self.operation.append("DEC_M1")
-                    if 'move_up' in msg:
-                        self.operation.append("DEC_P1")
-                    if 'stop' in msg:
-                        self.motor_ra.Float()
-                        self.motor_dec.Float()
-
                     pass
-                    # prijem zpravy o posuvu v RA
-                    # self.time_scale = 1 # urcit velikost skalovani hodinoveho stroje
-                    # self.operation.append("update_scaling")
-                    # print "ha"
+                    #prijem zpravy o posuvu v RA
+                    self.time_scale = 1 # urcit velikost skalovani hodinoveho stroje
+                    self.operation.append("update_scaling")
+                    self.update_scaling_last = time.time()
 
-                if self.update_scaling_last and (self.update_scaling_last + 5) < time.time():
-                    print("dlouho neprisel zadny pozadavek.. Vypinam trackovani")
+                if self.update_scaling_last and self.update_scaling_last < (time.time()-5):
                     self.time_scale = 1
                     self.update_scaling_last = 0
-
-                    sval = abs(int(self.conf['time']['speed_solar'] * 67.106 * self.time_scale))
-                    self.motor_time.Run(1, self.conf['time']['speed_solar'], speed_value = sval)
-                    self.motor_dec.Float()
-
+                    self.operation.append("update_scaling")
 
                 if len(self.operation)>0:
                     req = self.operation.pop(0)
@@ -251,11 +223,10 @@ class SolarLab(AromNode):
                         self.motor_ra.setPosition((self.ra_range[1])/2)
                         self.motor_dec.setPosition((self.dec_range[1])/2)
 
-                    #elif 'update_scaling' == req:
-                    #    self.tracking = 1
-                    #    sval = abs(int(self.conf['time']['speed_solar'] * 67.106 * self.time_scale))
-                    #    self.motor_time.Run(1, self.conf['time']['speed_solar'], speed_value = sval)
-                    #    self.update_scaling_last = time.time()
+                    elif 'update_scaling' == req:
+                        self.tracking = 1
+                        sval = abs(int(self.conf['time']['speed_solar'] * 67.106 * self.time_scale))
+                        self.motor_time.Run(1, self.conf['time']['speed_solar'], speed_value = sval)
 
                     elif 'tracking_toggle0' == req:
                         self.tracking = not self.tracking
@@ -298,21 +269,14 @@ class SolarLab(AromNode):
         self.dome_auto = False
         try:
             self.motor_ra.Float()
-        except:
-           print("Nepovedlo se zastavit rektascenzi")
-
-        try:
             self.motor_dec.Float()
-        except:
-           print("Nepovedlo se zastavit deklinaci")
-        try:
             self.motor_time.Float()
-        except:
-           print("Nepovedlo se zastavit hodinovy stroj")
 
-        time.sleep(5)
+        except:
+            print("Nepovedlo se zastavit vsechny motory pred vypnutim")
+
         print("Ted se zacnu vypinat")
-        os.system('poweroff')
+        os.system('poweroff') 
 
     def reinitMotors(self):
         self.motor_ra = axis.axis(SPI = self.pymlab, SPI_CS = 0b0001, Direction = True, StepsPerUnit = 1, protocol = 'arom', arom_spi_name = 'mount_ra')
@@ -398,7 +362,7 @@ class SolarLab(AromNode):
 
             # pohyb prvni
             while self.motor_ra.IsBusy() or self.motor_dec.IsBusy():
-                print("cekam")
+                print "cekam"
                 time.sleep(0.7)
                 self.motor_ra_status = self.motor_ra.getStatus()
                 self.motor_dec_status = self.motor_dec.getStatus()
@@ -414,10 +378,10 @@ class SolarLab(AromNode):
             self.motor_ra.ResetPos()
             self.motor_dec.ResetPos()
 
-            print("MIKROKROKOVANI!!")
+            print "MIKROKROKOVANI!!"
             print self.motor_ra.getParam(0x16)
 
-            print("prejezd do vychozi polohy")
+            print "prejezd do vychozi polohy"
             self.motor_ra.GoToDir((self.ra_range[1])/2)
             self.motor_dec.GoToDir((self.dec_range[1])/2)
 
@@ -427,10 +391,11 @@ class SolarLab(AromNode):
                 self.motor_dec_status = self.motor_dec.getStatus()
                 self.motor_time_status = self.motor_time.getStatus()
 
+
                 self.pub_motor_ra.publish(json.dumps(self.motor_ra_status, ensure_ascii=False))
                 self.pub_motor_dec.publish(json.dumps(self.motor_dec_status, ensure_ascii=False))
                 self.pub_motor_time.publish(json.dumps(self.motor_time_status, ensure_ascii=False))
-            print("jsem uprostred")
+            print "jsem uprostred"
             self.motor_ra.Float()
             self.motor_dec.Float()
             self.save_config()
@@ -466,7 +431,21 @@ class SolarLab(AromNode):
         if data.data == 'poweroff':
             print("prikaz pro vypnuti")
             print(data)
+            #if data.header.stamp + 10 > rospy.time.now():
+	    #pass
             self.run = False
+            #else:
+            #   print("Zprava starsi nez 10s, ignoruji")
+            #self.dome_auto = False
+            #time.sleep(2) # pockat na vsechny smycky
+            #try:
+            #    self.motor_ra.Float()
+            #    self.motor_dec.Float()
+            #    self.motor_time.Float()
+            #except:
+            #    print("Nepovedlo se zastavit vsechny motory pred vypnutim")
+            #print("Ted se zacnu vypinat")
+
 
     def ui_set_std_day(self, data):
         print(data.data)
