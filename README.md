@@ -20,9 +20,13 @@ Control and power electronics is based on the MLAB kit. System is controlled by 
 
 
 ## Control interface
+
+### Remote control
 The system is primarily controlled via web interface. The advantage is that sistem is independent of the operator's computer and it is also platform independent. 
 ![obrazek](https://user-images.githubusercontent.com/5196729/137350272-df36ca79-79c8-41cf-a33f-86da230990f5.png)
 
+### Local control
+The telescope are equipped with a local (wired) controller, which allows basic tasks such as moving the mount, opening and closing the caps/shutters or focusing the telescopes. 
 
 ### Controlled elements
  * Mount
@@ -32,7 +36,7 @@ The system is primarily controlled via web interface. The advantage is that sist
  * Automatic dome control
  * Telescope control
    * Focuser
-   * Iris clone
+   * Iris shutter
  * Pointing
    * Sun detection in image
    * Detection of solar axis
