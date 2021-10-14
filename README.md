@@ -46,6 +46,9 @@ The telescope are equipped with a local (wired) controller, which allows basic t
 
 
 
+![063A8564](https://user-images.githubusercontent.com/5196729/137354598-276ea1cb-fd52-44a2-a261-055f154d87cf.jpg)
+
+
 
 <hr>
 
