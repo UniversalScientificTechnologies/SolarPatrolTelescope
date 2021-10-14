@@ -24,6 +24,13 @@ Control and power electronics is based on the MLAB kit. System is controlled by 
    * Sun detection in image
    * Detection of solar axis
    * Mount control
+ * Variable power source
+   * Multiple outputs
+
+
+
+
+<hr>
 
 _Equipment for solar detection is in [own branch](https://github.com/UniversalScientificTechnologies/SolarPatrolTelescope/tree/ControlSystem)._
 
