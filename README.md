@@ -6,6 +6,25 @@ The control system was developed during the modernization of the solar patrol te
 
 Company [UST](ust.cz) has modernized control system of Partrola's telescope system. The aim of this upgrade was for the telescope to by able to perform all-day solar observations with minimal intervention by observer and to produce highly qualitative images and solar drawings.
 
+
+## Technical details
+Control and power electronics is based on the MLAB kit. System is controlled by Odroid C2 one-board computer. The software is built on the framework ROS and AROM, which allow easy expansion with new features. 
+
+
+### Controlled elements
+ * Mount
+   * Ra/Dec axis
+   * Time axis
+ * Telesope dust caps
+ * Automatic dome control
+ * Telescope control
+   * Focuser
+   * Iris clone
+ * Pointing
+   * Sun detection in image
+   * Detection of solar axis
+   * Mount control
+
 _Equipment for solar detection is in [own branch](https://github.com/UniversalScientificTechnologies/SolarPatrolTelescope/tree/ControlSystem)._
 
 
