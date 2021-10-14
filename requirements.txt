@@ -1,0 +1,6 @@
+pysimplegui
+cython
+numpy
+opencv-python
+pillow
+zmq
