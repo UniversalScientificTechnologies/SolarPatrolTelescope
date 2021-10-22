@@ -6,10 +6,11 @@ from astropy.io import fits
 import gc
 
 class camera(Thread):
-    def __init__(self, camera_id, image_queue: Queue):
+    def __init__(self, camera_id, image_queue: Queue, camera_ctrl: Queue):
         super(camera, self).__init__()
         print("Priprava kamery", camera_id)
         self.image_queue = image_queue
+        self.camera_ctrl = camera_ctrl
         self.should_run = True
 
         self.camera = asi.Camera(camera_id)
@@ -23,7 +24,7 @@ class camera(Thread):
         # the sensitivity, lens and lighting conditions used.
         self.camera.disable_dark_subtract()
 
-        self.camera.set_control_value(asi.ASI_GAIN, 150)
+        self.camera.set_control_value(asi.ASI_GAIN, 0)
         self.camera.set_control_value(asi.ASI_EXPOSURE, 30000)
         self.camera.set_control_value(asi.ASI_WB_B, 99)
         self.camera.set_control_value(asi.ASI_WB_R, 75)
@@ -40,22 +41,31 @@ class camera(Thread):
         except:
             pass
 
-        self.simulation_dict = glob.glob("E:\hasn20211011a\*.fits")
+        #self.simulation_dict = glob.glob("E:\hasn20211011a\*.fits")
 
     def kill(self):
         self.should_run = False
 
     def run(self):
         while self.should_run:
-            for fimg in self.simulation_dict:
-                img = fits.open(fimg)[0].data
-                self.image_queue.put(img)
+            # for fimg in self.simulation_dict:
+            #     img = fits.open(fimg)[0].data
+            #     self.image_queue.put(img)
+            #
+            #     del img
+            #     gc.collect()
+            #
+            #     if not self.should_run:
+            #         break
 
-                del img
-                gc.collect()
+            img = self.camera.capture()
+            self.image_queue.put(img)
 
-                if not self.should_run:
-                    break
+            print(img.min(), img.max())
 
-            #img = self.camera.capture()
-            #self.image_queue.put(img)
+            if not self.camera_ctrl.empty():
+                action = self.camera_ctrl.get()
+
+                if action['action'] == 'set_expo':
+                    print(action)
+                    self.camera.set_control_value(asi.ASI_EXPOSURE, int(action['value']))
