@@ -1,5 +1,7 @@
 # Control system of solar patrol telescope
 
+![063A8564](https://user-images.githubusercontent.com/5196729/137354598-276ea1cb-fd52-44a2-a261-055f154d87cf.jpg)
+
 The control system was developed during the modernization of the solar patrol telescope of [Astronomical Institute of CAS](http://www.asu.cas.cz/en/about/about-the-institute). The aim of Solar patrol is provide daily observation of the sun for many (not only) scientifics purposes.
 
 The observatory is equipped with a several telescopes (refractors):
@@ -43,12 +45,6 @@ The telescope are equipped with a local (wired) controller, which allows basic t
    * Mount control
  * Variable power source
    * Multiple outputs
-
-
-
-![063A8564](https://user-images.githubusercontent.com/5196729/137354598-276ea1cb-fd52-44a2-a261-055f154d87cf.jpg)
-
-
 
 <hr>
 
