@@ -1,4 +1,4 @@
-# Control system of a solar patrol telescope
+# Control system of the solar patrol telescope
 
 ![063A8564](https://user-images.githubusercontent.com/5196729/137354598-276ea1cb-fd52-44a2-a261-055f154d87cf.jpg)
 
