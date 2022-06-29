@@ -2,7 +2,7 @@
 
 ![063A8564](https://user-images.githubusercontent.com/5196729/137354598-276ea1cb-fd52-44a2-a261-055f154d87cf.jpg)
 
-The control system was developed during the modernization of the solar patrol telescope of [Astronomical Institute of CAS](http://www.asu.cas.cz/en/about/about-the-institute). The aim of the Solar patrol is to provide daily observation of the sun serving many (not only) scientifics purposes.
+The control system was developed during the modernization of the solar patrol telescope at [Astronomical Institute of CAS](http://www.asu.cas.cz/en/about/about-the-institute). The aim of the Solar patrol is to provide daily observation of the sun serving many (not only) scientifics purposes.
 
 The observatory is equipped with several telescopes (refractors):
 
