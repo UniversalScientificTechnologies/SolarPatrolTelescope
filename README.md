@@ -56,6 +56,9 @@ _Equipment for solar detection is in [own branch](https://github.com/UniversalSc
 
 ### I2C Device addresses
 
+![obrazek](https://user-images.githubusercontent.com/5196729/179181358-075d0a81-ecbd-43d9-90f7-a7ba271193c3.png)
+
+
 0x2C - I2CSPI - DECmotor \
 0x28 - I2CSPI - RAmotor \
 0x2D - I2CSPI - TimeMachine \
